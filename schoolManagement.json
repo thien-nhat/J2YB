@@ -1,0 +1,50 @@
+{
+  "databaseName": "schoolManagement",
+  "tables": {
+    "students": {
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "defaultValue": ""
+        },
+        {
+          "name": "name",
+          "dataType": "string",
+          "isPrimaryKey": false,
+          "defaultValue": "Anonymous"
+        },
+        {
+          "name": "age",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "defaultValue": ""
+        }
+      ],
+      "rows": [
+        {
+          "values": [
+            1,
+            "Nhatt",
+            25
+          ]
+        },
+        {
+          "values": [
+            2,
+            "Thienn",
+            22
+          ]
+        },
+        {
+          "values": [
+            3,
+            "Thienn",
+            22
+          ]
+        }
+      ]
+    }
+  }
+}
