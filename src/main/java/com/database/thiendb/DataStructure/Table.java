@@ -13,7 +13,7 @@ public class Table {
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
     }
-    
+
     // Check valid value
     private boolean checkValidValue(Object[] values) {
         for (int i = 0; i < values.length; i++) {
@@ -29,6 +29,10 @@ public class Table {
         columns.add(column);
     }
 
+    public Row getRow(Integer rowId) {
+        Row result = rows.get(rowId);
+        return result;
+    }
 
     public void addRow(Object[] values) {
         if (values.length == columns.size()) {
@@ -57,7 +61,7 @@ public class Table {
     }
 
     public void deleteRow(int index) {
-        rows.remove(index);
+        this.rows.remove(index);
     }
 
     @Override

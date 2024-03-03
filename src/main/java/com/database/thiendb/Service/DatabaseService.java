@@ -32,6 +32,11 @@ public class DatabaseService {
         return database.getTable(tableName);
     }
     // Lấy hàng
+    public Row getRow(String databaseName, String tableName, Integer rowId) {
+        // TODO
+        this.database = new Database(databaseName);        
+        return database.getTable(tableName).getRow(rowId);
+    }
     // Lấy cột
 
     // Thêm database
@@ -75,7 +80,12 @@ public class DatabaseService {
     // Sủa cột
 
     // Xóa hàng
-
+    public void deleteRow(String databaseName, String tableName, Integer rowId) {
+        // TODO
+        this.database = new Database(databaseName);
+        database.getTable(tableName).deleteRow(--rowId);
+        JsonDatabaseExporter.exportToJson(this.database);
+    }
     // Xóa cột
 
 }
