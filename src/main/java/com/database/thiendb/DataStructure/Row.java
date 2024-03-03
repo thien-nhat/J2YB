@@ -1,9 +1,13 @@
-package com.database.thiendb.Table;
+package com.database.thiendb.DataStructure;
 
 import java.util.Arrays;
 
 public class Row { 
+    // Add integer to manage easily
     private Object[] values;
+
+    public Row() {
+    }
 
     public Row(Object[] values) {
         this.values = values;

@@ -1,9 +1,9 @@
-package com.database.thiendb.Database;
+package com.database.thiendb.DataStructure;
 
 import java.util.HashMap;
 
-import com.database.thiendb.Table.Column;
-import com.database.thiendb.Table.Table;
+import org.springframework.stereotype.Component;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -12,9 +12,14 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.FileReader;
 
+@Component
 public class Database {
+
     private String databaseName;
     private HashMap<String, Table> tables;
+
+    public Database() {
+    }
 
     public Database(String databaseName) {
         this.databaseName = databaseName;
@@ -37,11 +42,6 @@ public class Database {
         return tables.get(tableName);
     }
 
-    // public void createTable(String tableName, Column column) {
-    //     Table table = new Table();
-    //     table.addColumn(column);
-    //     tables.put(tableName, table);
-    // }
     public void createTable(String tableName) {
         Table table = new Table();
         tables.put(tableName, table);

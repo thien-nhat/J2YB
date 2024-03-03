@@ -3,19 +3,19 @@ package com.database.thiendb;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.database.thiendb.Database.Database;
-import com.database.thiendb.Table.Column;
+import com.database.thiendb.DataStructure.Column;
+import com.database.thiendb.DataStructure.Database;
 
 @SpringBootApplication
 public class ThiendbApplication {
 
 	public static void main(String[] args) {
 		// Import
-		Database database = createDatabase();
-        JsonDatabaseExporter.exportToJson(database);
+		// Database database = createDatabase();
+        // JsonDatabaseExporter.exportToJson(database);
 
 		
-		// SpringApplication.run(ThiendbApplication.class, args);
+		SpringApplication.run(ThiendbApplication.class, args);
 	}
 
 	private static Database createDatabase() {
@@ -39,9 +39,9 @@ public class ThiendbApplication {
 		Object[] row2 = { 2, "Thienn", 22 };
 		Object[] row3 = { 3, "Thienn", 22 };
 
-		database.getTable("students").insertRow(row1);
-		database.getTable("students").insertRow(row2);
-		database.getTable("students").insertRow(row3);
+		database.getTable("students").addRow(row1);
+		database.getTable("students").addRow(row2);
+		database.getTable("students").addRow(row3);
 
 		// System.out.println(database.getTable("students").toString());
 

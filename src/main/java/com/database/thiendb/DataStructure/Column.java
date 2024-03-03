@@ -1,4 +1,4 @@
-package com.database.thiendb.Table;
+package com.database.thiendb.DataStructure;
 
 public class Column {
     private String name;

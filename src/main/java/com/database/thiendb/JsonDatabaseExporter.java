@@ -1,6 +1,6 @@
 package com.database.thiendb;
 
-import com.database.thiendb.Database.Database;
+import com.database.thiendb.DataStructure.Database;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.FileWriter;
@@ -8,6 +8,8 @@ import java.io.IOException;
 
 public class JsonDatabaseExporter {
     public static void exportToJson(Database database) {
+        System.out.println(database.getDatabaseName());
+
         // Tạo đối tượng Gson
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

@@ -1,4 +1,4 @@
-package com.database.thiendb.Table;
+package com.database.thiendb.DataStructure;
 
 import java.util.ArrayList;
 
@@ -13,35 +13,49 @@ public class Table {
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
     }
+    
+    // Check valid value
+    private boolean checkValidValue(Object[] values) {
+        for (int i = 0; i < values.length; i++) {
+            if (!columns.get(i).isValidValue(values[i])) {
+                System.out.println("Invalid value for column " + columns.get(i).getName());
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void addColumn(Column column) {
         columns.add(column);
     }
 
-    // public void insertRow(String[] values) {
-    //     if (values.length == columns.size()) {
-    //         Row row = new Row(values);
-    //         rows.add(row);
-    //     } else {
-    //         System.out.println("Number of values doesn't match number of columns.");
-    //     }
-    // }
 
-    public void insertRow(Object[] values) {
+    public void addRow(Object[] values) {
         if (values.length == columns.size()) {
-            for (int i = 0; i < values.length; i++) {
-                if (!columns.get(i).isValidValue(values[i])) {
-                    System.out.println("Invalid value for column " + columns.get(i).getName());
-                    return;
-                }
+
+            if (checkValidValue(values)) {
+                Row row = new Row(values);
+                rows.add(row);
+            } else {
+                return;
             }
-            Row row = new Row(values);
-            rows.add(row);
         } else {
             System.out.println("Number of values doesn't match number of columns.");
         }
     }
-    
+
+    public void updateRow(Integer index, Object[] values) {
+        if (values.length == columns.size()) {
+            if (checkValidValue(values)) {
+                this.rows.get(index).setValues(values);
+            } else {
+                return;
+            }
+        } else {
+            System.out.println("Number of values doesn't match number of columns.");
+        }
+    }
+
     public void deleteRow(int index) {
         rows.remove(index);
     }
@@ -53,10 +67,10 @@ public class Table {
         tableString.append("Columns:\n");
         for (Column column : columns) {
             tableString.append("Name: ").append(column.getName())
-                       .append(", DataType: ").append(column.getDataType())
-                       .append(", PrimaryKey: ").append(column.isPrimaryKey())
-                       .append(", DefaultValue: ").append(column.getDefaultValue())
-                       .append("\n");
+                    .append(", DataType: ").append(column.getDataType())
+                    .append(", PrimaryKey: ").append(column.isPrimaryKey())
+                    .append(", DefaultValue: ").append(column.getDefaultValue())
+                    .append("\n");
         }
         // Hiển thị thông tin của các hàng
         tableString.append("Rows:\n");
@@ -65,7 +79,6 @@ public class Table {
         }
         return tableString.toString();
     }
-    
 
     // public ArrayList<Row> search(String keyword) {
     // ArrayList<Row> result = new ArrayList<>();
