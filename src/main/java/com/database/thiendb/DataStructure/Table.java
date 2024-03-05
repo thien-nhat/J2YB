@@ -34,11 +34,11 @@ public class Table {
         return result;
     }
 
-    public void addRow(Object[] values) {
+    public void addRow(Row row) {
+        Object[] values = row.getValues();
         if (values.length == columns.size()) {
 
             if (checkValidValue(values)) {
-                Row row = new Row(values);
                 rows.add(row);
             } else {
                 return;
@@ -48,7 +48,8 @@ public class Table {
         }
     }
 
-    public void updateRow(Integer index, Object[] values) {
+    public void updateRow(Integer index, Row row) {
+        Object[] values = row.getValues();
         if (values.length == columns.size()) {
             if (checkValidValue(values)) {
                 this.rows.get(index).setValues(values);

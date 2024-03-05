@@ -3,89 +3,23 @@ package com.database.thiendb.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.database.thiendb.JsonDatabaseExporter;
-import com.database.thiendb.DataStructure.Column;
-import com.database.thiendb.DataStructure.Database;
-import com.database.thiendb.DataStructure.Row;
-import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Repository.DatabaseRepository;
 
 @Service
 public class DatabaseService {
     @Autowired
-    private Database database;
+    private DatabaseRepository databaseRepository;
 
-    public DatabaseService(Database database) {
-        this.database = database;
+    public DatabaseService(DatabaseRepository databaseRepository) {
+        this.databaseRepository = databaseRepository;
     }
 
-    public Database getDatabase() {
-        return this.database;
+    public DatabaseRepository getDatabaseRepository() {
+        return databaseRepository;
     }
 
-    // Lấy all cột
-
-    // Lấy all hàng
-
-    // Lấy bảng
-    public Table getTable(String databaseName, String tableName) {
-        // TODO
-        return database.getTable(tableName);
+    public void setDatabaseRepository(DatabaseRepository databaseRepository) {
+        this.databaseRepository = databaseRepository;
     }
-    // Lấy hàng
-    public Row getRow(String databaseName, String tableName, Integer rowId) {
-        // TODO
-        this.database = new Database(databaseName);        
-        return database.getTable(tableName).getRow(rowId);
-    }
-    // Lấy cột
-
-    // Thêm database
-    public void addDatabase(String databaseName) {
-        // TODO
-        // this.database = new Database(databaseName);
-    }
-
-    // Thêm bảng
-    public void addTable(String databaseName, String tableName) {
-        // TODO
-        Database database = new Database(databaseName);
-        database.createTable(tableName);
-        JsonDatabaseExporter.exportToJson(this.database);
-    }
-
-    // Thêm hàng
-    public void addRow(String databaseName, String tableName, Row row) {
-        // TODO
-        this.database = new Database(databaseName);
-        database.getTable(tableName).addRow(row.getValues());
-        JsonDatabaseExporter.exportToJson(this.database);
-    }
-
-    // Thêm cột
-    public void addColumn(String databaseName, String tableName, Column column) {
-        // TODO
-        Database database = new Database(databaseName);
-        database.getTable(tableName).addColumn(column);
-        JsonDatabaseExporter.exportToJson(this.database);
-    }
-
-    // Sửa hàng
-    public void updateRow(String databaseName, String tableName, Integer rowId, Row row) {
-        // TODO
-        this.database = new Database(databaseName);
-        database.getTable(tableName).updateRow(--rowId, row.getValues());
-
-        JsonDatabaseExporter.exportToJson(this.database);
-    }
-    // Sủa cột
-
-    // Xóa hàng
-    public void deleteRow(String databaseName, String tableName, Integer rowId) {
-        // TODO
-        this.database = new Database(databaseName);
-        database.getTable(tableName).deleteRow(--rowId);
-        JsonDatabaseExporter.exportToJson(this.database);
-    }
-    // Xóa cột
 
 }

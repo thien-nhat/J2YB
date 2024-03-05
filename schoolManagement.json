@@ -1,6 +1,10 @@
 {
   "databaseName": "schoolManagement",
   "tables": {
+    "teacher": {
+      "columns": [],
+      "rows": []
+    },
     "students": {
       "columns": [
         {
@@ -41,6 +45,13 @@
           "values": [
             1.0,
             "Ngo",
+            21.0
+          ]
+        },
+        {
+          "values": [
+            1.0,
+            "Nhat",
             21.0
           ]
         }
