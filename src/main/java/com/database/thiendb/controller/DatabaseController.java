@@ -14,4 +14,8 @@ public class DatabaseController {
         this.databaseService = databaseService;
     }
 
+    // Get all database
+
+    // Get database
+
 }

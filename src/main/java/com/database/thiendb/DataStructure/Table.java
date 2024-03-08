@@ -3,7 +3,6 @@ package com.database.thiendb.DataStructure;
 import java.util.ArrayList;
 
 public class Table {
-    // private String[] columns;
     private ArrayList<Column> columns;
 
     private ArrayList<Row> rows;
@@ -12,6 +11,14 @@ public class Table {
         // this.columns = columns;
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
+    }
+
+    public ArrayList<Column> getColumns() {
+        return columns;
+    }
+
+    public ArrayList<Row> getRows() {
+        return rows;
     }
 
     // Check valid value

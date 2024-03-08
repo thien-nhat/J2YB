@@ -16,12 +16,7 @@ public class Database {
     public Database(String databaseName) {
         this.databaseName = databaseName;
         this.tables = new HashMap<>();
-        // Database existingDatabase = createOrLoadDatabaseFromFile(databaseName + ".json");
-        // if (existingDatabase != null) {
-        //     this.tables = existingDatabase.tables;
-        // }
     }
-
 
     public String getDatabaseName() {
         return databaseName;
@@ -40,10 +35,17 @@ public class Database {
         tables.put(tableName, table);
     }
 
+    public void updateTableName(String tableName, String newTableName) {
+        if (tables.containsKey(tableName)) {
+            Table table = tables.remove(tableName);
+            tables.put(newTableName, table);
+        } else {
+            System.out.println("Don't have this table in the database");
+        }
+    }
+
     public void dropTable(String tableName) {
         tables.remove(tableName);
     }
-
-   
 
 }

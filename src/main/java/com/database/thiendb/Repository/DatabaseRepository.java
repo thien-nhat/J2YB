@@ -61,29 +61,15 @@ public class DatabaseRepository {
     // Create database
     public void createDatabaseByName(String databaseName) {
         String fileName = databaseName + ".json";
-        File file = new File(databaseName);
+        File file = new File(fileName);
         try {
             // Nếu tập tin chưa tồn tại, tạo một tập tin mới
             file.createNewFile();
-            System.out.println("Created new database file: " + fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Lấy bảng
-    public Table getTableByDatabase(String databaseName, String tableName) {
-        // TODO
-        return database.getTable(tableName);
-    }
-
-    // Thêm bảng
-    public void addTableByDatabase(String databaseName, String tableName) {
-        // TODO
-        Database database = new Database(databaseName);
-        database.createTable(tableName);
-        this.save(this.database);
-    }
 
     // Save
     public void save(Database database) {
