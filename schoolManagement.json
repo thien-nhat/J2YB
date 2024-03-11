@@ -6,7 +6,7 @@
         {
           "name": "id",
           "dataType": "int",
-          "isPrimaryKey": false,
+          "isPrimaryKey": true,
           "defaultValue": ""
         },
         {
@@ -48,7 +48,7 @@
           "values": [
             1.0,
             "Nhat",
-            21.0
+            22.0
           ]
         }
       ]

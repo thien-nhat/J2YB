@@ -58,4 +58,11 @@ public class Column {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Column [name=" + name + ", dataType=" + dataType + ", isPrimaryKey=" + isPrimaryKey + ", defaultValue="
+                + defaultValue + "]";
+    }
+    
+
 }

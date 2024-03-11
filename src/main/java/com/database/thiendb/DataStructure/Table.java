@@ -1,6 +1,9 @@
 package com.database.thiendb.DataStructure;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import net.sf.jsqlparser.statement.select.SelectItem;
 
 public class Table {
     private ArrayList<Column> columns;
@@ -8,7 +11,6 @@ public class Table {
     private ArrayList<Row> rows;
 
     public Table() {
-        // this.columns = columns;
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
     }
@@ -19,6 +21,60 @@ public class Table {
 
     public ArrayList<Row> getRows() {
         return rows;
+    }
+
+    private int getColumnIndex(String columnName) {
+        for (int i = 0; i < this.columns.size(); i++) {
+            if (this.columns.get(i).getName().equals(columnName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public ArrayList<Row> getRows(List<SelectItem> selectedColumnNames) {
+        ArrayList<Row> rowResult = new ArrayList<>();
+        for (Row row : rows) {
+            Object[] selectedValues = new Object[selectedColumnNames.size()];
+            for (int i = 0; i < selectedColumnNames.size(); i++) {
+                String columnName = selectedColumnNames.get(i).toString();
+                int columnIndex = getColumnIndex(columnName);
+                if (columnIndex != -1) {
+                    selectedValues[i] = row.getValueByColumnIndex(columnIndex);
+                }
+            }
+            rowResult.add(new Row(selectedValues));
+        }
+        return rowResult;
+    }
+
+    public ArrayList<Column> getColumns(List<SelectItem> selectedColumnNames) {
+        ArrayList<Column> selectedColumns = new ArrayList<>();
+        for (SelectItem selectedItem : selectedColumnNames) {
+            String columnName = selectedItem.toString();
+            int columnIndex = getColumnIndex(columnName);
+            if (columnIndex != -1) {
+                selectedColumns.add(columns.get(columnIndex));
+            }
+        }
+        return selectedColumns;
+    }
+    
+    public void getSelectedElements(List<SelectItem> selectedColumnNames) {
+        this.rows = getRows(selectedColumnNames);
+        this.columns = getColumns(selectedColumnNames);
+    }
+
+    public void printSelectedRow(List<SelectItem> selectedColumnNames) {
+        ArrayList<Row> selectedRows = getRows(selectedColumnNames);
+        for (Row row : selectedRows) {
+            System.out.println(row);
+        }
+        System.out.println("Return column");
+        ArrayList<Column> selectedColumns = getColumns(selectedColumnNames);
+        for (Column column : selectedColumns) {
+            System.out.println(column);
+        }
     }
 
     // Check valid value
