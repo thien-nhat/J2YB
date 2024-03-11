@@ -103,14 +103,14 @@ public class QueryController {
             }
 
             if (statement instanceof Delete) {
-                System.out.println("Executing deleteRow()");
-                
+                Delete deleteStatement = (Delete) statement;
+                String tableName = deleteStatement.getTable().getName();
+                this.tableService.deleteTable(databaseName, tableName);
             }
 
         } catch (JSQLParserException e) {
             e.printStackTrace();
         }
-        // return query;
         return ResponseEntity.ok(query);
 
     }
