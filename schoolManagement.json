@@ -1,7 +1,7 @@
 {
   "databaseName": "schoolManagement",
   "tables": {
-    "student": {
+    "students": {
       "columns": [
         {
           "name": "id",

@@ -20,6 +20,7 @@ import net.sf.jsqlparser.statement.update.Update;
 @RestController
 @RequestMapping(path = "/api")
 public class QueryController {
+    
     @PostMapping("/parse-sql")
     public String parseSQL(@RequestBody String query) {
         try {
@@ -34,6 +35,7 @@ public class QueryController {
                 List<SelectItem> selectItems = plainSelect.getSelectItems();
                 if (selectItems.size() == 1 && selectItems.get(0).toString().equals("*")) {
                     // Chọn tất cả các cột
+
                     System.out.println("Executing getTable()");
                 } else {
                     // Trường hợp chọn các cột cụ thể

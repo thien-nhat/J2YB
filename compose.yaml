@@ -1,0 +1,9 @@
+services:
+  thiendb-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./target:/home/app/target
