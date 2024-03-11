@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Service.RowService;
 import com.database.thiendb.Service.TableService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,14 +27,19 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.statement.values.ValuesStatement;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 
 @RestController
 @RequestMapping(path = "/api")
 public class QueryController {
     private final TableService tableService;
+    private final RowService rowService;
 
-    public QueryController(TableService tableService) {
+    public QueryController(TableService tableService, RowService rowService) {
         this.tableService = tableService;
+        this.rowService = rowService;
     }
 
     @PostMapping("/parse-sql/{databaseName}")
@@ -94,8 +101,39 @@ public class QueryController {
             }
             if (statement instanceof Insert) {
                 System.out.println("Executing addRow()");
+                Insert insertStatement = (Insert) statement;
+                String tableName = insertStatement.getTable().getName();
+                System.out.println("Get getItemsList");
+                ItemsList valuesStatement = insertStatement.getItemsList();
+                String valuesString = valuesStatement.toString();
+                System.out.println(valuesString);
+                // Remove parentheses and split by comma
+                String[] valueStrings = valuesString.substring(1, valuesString.length() - 1).split(",");
 
+                // Trim each value and remove single quotes if present
+                Object[] values = new Object[valueStrings.length];
+                for (int i = 0; i < valueStrings.length; i++) {
+                    String trimmedValue = valueStrings[i].trim();
+                    if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
+                        // Remove single quotes for string literals
+                        values[i] = trimmedValue.substring(1, trimmedValue.length() - 1);
+                    } else {
+                        // Convert other values directly
+                        if (trimmedValue.matches("-?\\d+")) {
+                            // If the value consists of digits only, it's an integer
+                            values[i] = Integer.parseInt(trimmedValue);
+                        } else if (trimmedValue.matches("-?\\d+\\.\\d+")) {
+                            // If the value is in decimal format, it's a double
+                            values[i] = Double.parseDouble(trimmedValue);
+                        } else {
+                            // Otherwise, treat it as a string
+                            values[i] = trimmedValue;
+                        }
 
+                    }
+                }
+                Row rowRequest = new Row(values);
+                this.rowService.addRow(databaseName, tableName, rowRequest);
             }
             if (statement instanceof Update) {
                 System.out.println("Executing updateRow()");
