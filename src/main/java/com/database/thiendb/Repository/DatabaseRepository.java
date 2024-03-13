@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.database.thiendb.DataStructure.Database;
-import com.database.thiendb.DataStructure.Table;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

@@ -1,6 +1,6 @@
 package com.database.thiendb.controller;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -27,7 +28,6 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 
@@ -40,6 +40,25 @@ public class QueryController {
     public QueryController(TableService tableService, RowService rowService) {
         this.tableService = tableService;
         this.rowService = rowService;
+    }
+
+    private Object parseValue(String trimmedValue) {
+        if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
+            // Remove single quotes for string literals
+            return trimmedValue.substring(1, trimmedValue.length() - 1);
+        } else {
+            // Convert other values directly
+            if (trimmedValue.matches("-?\\d+")) {
+                // If the value consists of digits only, it's an integer
+                return Integer.parseInt(trimmedValue);
+            } else if (trimmedValue.matches("-?\\d+\\.\\d+")) {
+                // If the value is in decimal format, it's a double
+                return Double.parseDouble(trimmedValue);
+            } else {
+                // Otherwise, treat it as a string
+                return trimmedValue;
+            }
+        }
     }
 
     @PostMapping("/parse-sql/{databaseName}")
@@ -103,10 +122,8 @@ public class QueryController {
                 System.out.println("Executing addRow()");
                 Insert insertStatement = (Insert) statement;
                 String tableName = insertStatement.getTable().getName();
-                System.out.println("Get getItemsList");
                 ItemsList valuesStatement = insertStatement.getItemsList();
                 String valuesString = valuesStatement.toString();
-                System.out.println(valuesString);
                 // Remove parentheses and split by comma
                 String[] valueStrings = valuesString.substring(1, valuesString.length() - 1).split(",");
 
@@ -114,29 +131,40 @@ public class QueryController {
                 Object[] values = new Object[valueStrings.length];
                 for (int i = 0; i < valueStrings.length; i++) {
                     String trimmedValue = valueStrings[i].trim();
-                    if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
-                        // Remove single quotes for string literals
-                        values[i] = trimmedValue.substring(1, trimmedValue.length() - 1);
-                    } else {
-                        // Convert other values directly
-                        if (trimmedValue.matches("-?\\d+")) {
-                            // If the value consists of digits only, it's an integer
-                            values[i] = Integer.parseInt(trimmedValue);
-                        } else if (trimmedValue.matches("-?\\d+\\.\\d+")) {
-                            // If the value is in decimal format, it's a double
-                            values[i] = Double.parseDouble(trimmedValue);
-                        } else {
-                            // Otherwise, treat it as a string
-                            values[i] = trimmedValue;
-                        }
-
-                    }
+                    values[i] = parseValue(trimmedValue);
                 }
                 Row rowRequest = new Row(values);
                 this.rowService.addRow(databaseName, tableName, rowRequest);
             }
             if (statement instanceof Update) {
                 System.out.println("Executing updateRow()");
+                // Trích xuất thông tin từ câu lệnh Update
+                Update updateStatement = (Update) statement;
+                String tableName = updateStatement.getTable().getName();
+
+                // Lấy danh sách cập nhật cột và giá trị tương ứng
+                List<Column> columns = updateStatement.getColumns();
+                List<Expression> expressions = updateStatement.getExpressions();
+
+                // Tạo một danh sách cập nhật (cột và giá trị tương ứng)
+                HashMap<String, Expression> updates = new HashMap<>();
+
+                for (int i = 0; i < columns.size(); i++) {
+                    Column column = columns.get(i);
+                    Expression expression = expressions.get(i);
+                    updates.put(column.getColumnName(), expression);
+                }
+
+                // Trích xuất điều kiện của câu lệnh Update
+                Expression where = updateStatement.getWhere();
+                String condition = where.toString(); 
+                String[] parts = condition.split("="); // Split the condition string into parts
+                String columnName = parts[0].trim(); // Extract the column name
+                // Object value = parts[1].trim(); // Extract the value
+                Object value= parseValue(parts[1].trim());
+
+                // Gọi phương thức để thực thi truy vấn cập nhật
+                this.rowService.updateRowByCondition(databaseName, tableName, columnName, value, updates);
 
             }
 

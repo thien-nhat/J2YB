@@ -23,13 +23,56 @@ public class Table {
         return rows;
     }
 
-    private int getColumnIndex(String columnName) {
+    public int getColumnIndex(String columnName) {
         for (int i = 0; i < this.columns.size(); i++) {
             if (this.columns.get(i).getName().equals(columnName)) {
                 return i;
             }
         }
         return -1;
+    }
+
+    private boolean areValuesEqual(Object columnValue, Object value) {
+        System.out.println("areValuesEqual");
+        System.out.println(columnValue);
+        System.out.println(value);
+        System.out.println(columnValue  instanceof Number);
+        System.out.println(value  instanceof Number);
+
+        if (columnValue instanceof Number && value instanceof Number) {
+            // If both values are numbers, convert them to double and compare
+            double columnDouble = ((Number) columnValue).doubleValue();
+            double valueDouble = ((Number) value).doubleValue();
+            return Double.compare(columnDouble, valueDouble) == 0;
+        } else {
+            // Otherwise, use the default equals method for comparison
+            return columnValue.equals(value);
+        }
+    }
+
+    public Row findRowByCondition(String columnName, Object value) {
+        System.out.println("Find row by condition");
+        // System.out.println(columnName);
+        // System.out.println(value);
+
+        // Iterate over each row in the table
+        for (Row row : rows) {
+            // Get the index of the column with the given name
+            int columnIndex = getColumnIndex(columnName);
+            System.out.println(columnIndex);
+            if (columnIndex != -1) {
+                // Retrieve the value of the column from the row
+                Object columnValue = row.getValues()[columnIndex];
+                System.out.println(columnValue);
+                // Check if the column value matches the given value
+                if (areValuesEqual(columnValue, value)) {
+                    // Return the row if the condition is met
+                    return row;
+                }
+            }
+        }
+        // Return null if no row matches the condition
+        return null;
     }
 
     public ArrayList<Row> getRows(List<SelectItem> selectedColumnNames) {
@@ -59,7 +102,7 @@ public class Table {
         }
         return selectedColumns;
     }
-    
+
     public void getSelectedElements(List<SelectItem> selectedColumnNames) {
         this.rows = getRows(selectedColumnNames);
         this.columns = getColumns(selectedColumnNames);
@@ -148,16 +191,4 @@ public class Table {
         return tableString.toString();
     }
 
-    // public ArrayList<Row> search(String keyword) {
-    // ArrayList<Row> result = new ArrayList<>();
-    // for (Row row : rows) {
-    // for (String value : row.getValues()) {
-    // if (value.contains(keyword)) {
-    // result.add(row);
-    // break;
-    // }
-    // }
-    // }
-    // return result;
-    // }
 }

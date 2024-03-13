@@ -9,6 +9,4 @@ public class ThiendbApplication {
 	public static void main(String[] args) {	
 		SpringApplication.run(ThiendbApplication.class, args);
 	}
-	
-
 }
