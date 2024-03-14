@@ -1,6 +1,41 @@
 {
   "databaseName": "schoolManagement",
   "tables": {
+    "Persons": {
+      "columns": [
+        {
+          "name": "PersonID",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "defaultValue": "NULL"
+        },
+        {
+          "name": "LastName",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "defaultValue": "NULL"
+        },
+        {
+          "name": "FirstName",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "defaultValue": "NULL"
+        },
+        {
+          "name": "Address",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "defaultValue": "NULL"
+        },
+        {
+          "name": "City",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "defaultValue": "NULL"
+        }
+      ],
+      "rows": []
+    },
     "students": {
       "columns": [
         {
@@ -60,9 +95,9 @@
         },
         {
           "values": [
-            5,
+            5.0,
             "Stavanger",
-            60
+            60.0
           ]
         }
       ]

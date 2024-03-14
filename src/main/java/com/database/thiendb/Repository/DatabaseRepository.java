@@ -34,7 +34,9 @@ public class DatabaseRepository {
     public Database findDatabaseByName(String databaseName) {
         String fileName = databaseName + ".json";
         File file = new File(fileName);
+        System.out.println(file);
         if (file.exists()) {
+            System.out.println("hello");
             Gson gson = new GsonBuilder().create();
 
             try {
@@ -54,26 +56,27 @@ public class DatabaseRepository {
             }
         } else
             return null;
-        return null;
+        return database;
     }
 
     // Create database
-    public void createDatabaseByName(String databaseName) {
+    public Database createDatabaseByName(String databaseName) {
         String fileName = databaseName + ".json";
         File file = new File(fileName);
         try {
             // Nếu tập tin chưa tồn tại, tạo một tập tin mới
             file.createNewFile();
+            return new Database(databaseName);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
 
     // Save
     public void save(Database database) {
-        System.out.println(database.getDatabaseName());
-
         // Tạo đối tượng Gson
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

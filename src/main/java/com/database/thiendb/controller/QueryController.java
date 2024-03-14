@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Service.DatabaseService;
 import com.database.thiendb.Service.RowService;
 import com.database.thiendb.Service.TableService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,6 +23,8 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -34,10 +37,12 @@ import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 @RestController
 @RequestMapping(path = "/api")
 public class QueryController {
+    private final DatabaseService databaseService;
     private final TableService tableService;
     private final RowService rowService;
 
-    public QueryController(TableService tableService, RowService rowService) {
+    public QueryController(DatabaseService databaseService, TableService tableService, RowService rowService) {
+        this.databaseService = databaseService;
         this.tableService = tableService;
         this.rowService = rowService;
     }
@@ -61,13 +66,35 @@ public class QueryController {
         }
     }
 
+    @PostMapping("/parse-sql")
+    public ResponseEntity<Object> parseDatabaseSQL(@RequestBody String query) {
+        if (query.trim().startsWith("CREATE DATABASE")) {
+            // Extract the database name from the SQL statement
+            String NewDatabaseName = query.substring("CREATE DATABASE".length()).trim().replaceAll(";", "");
+            // Call the function to create the database
+            System.out.println(NewDatabaseName);
+            this.databaseService.addDatabase(NewDatabaseName);
+        }
+        return ResponseEntity.ok(query);
+    }
+
     @PostMapping("/parse-sql/{databaseName}")
     public ResponseEntity<Object> parseSQL(@RequestBody String query,
             @PathVariable("databaseName") String databaseName) {
         try {
             // Parse câu truy vấn SQL
             Statement statement = CCJSqlParserUtil.parse(query);
+            if (statement instanceof CreateTable) {
+                // executeCreateTable((CreateTable) statement);
+                CreateTable createTableStatement = (CreateTable) statement;
+                System.out.println(createTableStatement);
+                String tableName = createTableStatement.getTable().getName();
+                System.out.println("Creating table: " + tableName);
+                List<ColumnDefinition> columnDefinitions = createTableStatement.getColumnDefinitions();
 
+                this.tableService.addTable(databaseName, tableName, columnDefinitions);
+
+            }
             if (statement instanceof Select) {
                 Select selectStatement = (Select) statement;
                 PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
@@ -157,11 +184,11 @@ public class QueryController {
 
                 // Trích xuất điều kiện của câu lệnh Update
                 Expression where = updateStatement.getWhere();
-                String condition = where.toString(); 
+                String condition = where.toString();
                 String[] parts = condition.split("="); // Split the condition string into parts
                 String columnName = parts[0].trim(); // Extract the column name
                 // Object value = parts[1].trim(); // Extract the value
-                Object value= parseValue(parts[1].trim());
+                Object value = parseValue(parts[1].trim());
 
                 // Gọi phương thức để thực thi truy vấn cập nhật
                 this.rowService.updateRowByCondition(databaseName, tableName, columnName, value, updates);

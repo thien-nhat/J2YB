@@ -3,6 +3,7 @@ package com.database.thiendb.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.Repository.DatabaseRepository;
 
 @Service
@@ -22,4 +23,14 @@ public class DatabaseService {
         this.databaseRepository = databaseRepository;
     }
 
+    public void addDatabase(String databaseName) {
+        // TODO
+        Database database = databaseRepository.createDatabaseByName(databaseName);
+        // Save the json file
+        if (database != null) {
+            this.databaseRepository.save(database);
+        } else {
+            System.out.println("Database '" + databaseName + "' has not been created.");
+        }
+    }
 }
