@@ -18,6 +18,9 @@ public class DatabaseRepository {
     @Autowired
     private Database database;
 
+    public DatabaseRepository() {
+    }
+
     public DatabaseRepository(Database database) {
         this.database = database;
     }

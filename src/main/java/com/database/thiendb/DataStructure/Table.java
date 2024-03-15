@@ -1,6 +1,7 @@
 package com.database.thiendb.DataStructure;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.sf.jsqlparser.statement.select.SelectItem;
@@ -15,14 +16,88 @@ public class Table {
         this.rows = new ArrayList<>();
     }
 
+    public void addColumn(Column column) {
+        columns.add(column);
+    }
+
     public ArrayList<Column> getColumns() {
         return columns;
+    }
+
+    // Get column by name
+    public Column getColumnByName(String columnName) {
+        for (Column column : columns) {
+            if (column.getName().equals(columnName)) {
+                return column;
+            }
+        }
+        return null; // Return null if column not found
     }
 
     public ArrayList<Row> getRows() {
         return rows;
     }
 
+    // Sắp xếp lại các hàng theo một cột
+    private void sortRowsByColumn(String columnName) {
+        Collections.sort(rows, (row1, row2) -> {
+            Object value1 = row1.getValueByColumn(columnName, columns);
+            Object value2 = row2.getValueByColumn(columnName, columns);
+            if (value1 instanceof Comparable && value2 instanceof Comparable) {
+                return ((Comparable) value1).compareTo(value2);
+            }
+            return 0;
+        });
+    }
+
+    // Thêm cột được index và sắp xếp lại các hàng
+    public void addIndexedColumn(String columnName) {
+        Column column = getColumnByName(columnName);
+        column.setIndex(true);
+        sortRowsByColumn(columnName);
+    }
+
+
+    // Search for a row by an indexed column
+    public Row findRowByIndexedColumn(String columnName, Object value) {
+
+        int left = 0;
+        int right = this.rows.size() - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            Row midRow = rows.get(mid);
+            Object midValue = midRow.getValueByColumn(columnName, columns);
+            if (midValue != null && midValue.equals(value)) {
+                return midRow; // Found the row with the matching value
+            } else if (midValue == null || ((Comparable) midValue).compareTo(value) < 0) {
+                left = mid + 1; // Search in the right half
+            } else {
+                right = mid - 1; // Search in the left half
+            }
+        }
+
+        return null; // Row not found
+    }
+
+    // Kiểm tra xem một cột có phải là cột index không
+    public boolean isColumnIndexed(Column column) {
+        return column.isIndex();
+    }
+
+    // Kiểm tra tất cả các cột trong bảng và tìm ra các cột được index
+    public List<Column> getIndexedColumns() {
+        List<Column> indexedColumns = new ArrayList<>();
+        for (Column column : columns) {
+            if (column.isIndex()) {
+                indexedColumns.add(column);
+            }
+        }
+        return indexedColumns;
+    }
+
+    //
+    // Lấy số thứ tự của Column đó trong bảng
     public int getColumnIndex(String columnName) {
         for (int i = 0; i < this.columns.size(); i++) {
             if (this.columns.get(i).getName().equals(columnName)) {
@@ -33,12 +108,6 @@ public class Table {
     }
 
     private boolean areValuesEqual(Object columnValue, Object value) {
-        System.out.println("areValuesEqual");
-        System.out.println(columnValue);
-        System.out.println(value);
-        System.out.println(columnValue  instanceof Number);
-        System.out.println(value  instanceof Number);
-
         if (columnValue instanceof Number && value instanceof Number) {
             // If both values are numbers, convert them to double and compare
             double columnDouble = ((Number) columnValue).doubleValue();
@@ -129,10 +198,6 @@ public class Table {
             }
         }
         return true;
-    }
-
-    public void addColumn(Column column) {
-        columns.add(column);
     }
 
     public Row getRow(Integer rowId) {

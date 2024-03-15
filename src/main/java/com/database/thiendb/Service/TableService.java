@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.database.thiendb.DataStructure.Column;
 import com.database.thiendb.DataStructure.Database;
+import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
 import com.database.thiendb.Repository.DatabaseRepository;
 
@@ -16,7 +17,7 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 public class TableService {
     @Autowired
     private DatabaseRepository databaseRepository;
-
+    
     public TableService(DatabaseRepository databaseRepository) {
         this.databaseRepository = databaseRepository;
     }
@@ -46,7 +47,7 @@ public class TableService {
             String dataType = columnDefinition.getColDataType().toString();
             boolean isPrimaryKey = false;
             String defaultValue = "NULL";
-            Column column = new Column(columnName, dataType, isPrimaryKey, defaultValue);
+            Column column = new Column(columnName, dataType, isPrimaryKey, defaultValue, false);
             newTable.addColumn(column);
         }
         this.databaseRepository.save(database);
@@ -66,4 +67,17 @@ public class TableService {
         this.databaseRepository.save(database);
     }
 
+    public void addIndexedColumn(String databaseName, String tableName, String columnName) {
+        // TODO
+        Database database = databaseRepository.findDatabaseByName(databaseName);
+        Table table = database.getTable(tableName);
+        table.addIndexedColumn(columnName);
+        this.databaseRepository.save(database);
+    }
+    public Row findIndexedColumnByName(String databaseName, String tableName, String columnName, Object value) {
+        // TODO
+        Database database = databaseRepository.findDatabaseByName(databaseName);
+        Table table = database.getTable(tableName);
+        return table.findRowByIndexedColumn(columnName, value);
+    }
 }

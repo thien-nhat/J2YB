@@ -23,6 +23,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -95,10 +96,16 @@ public class QueryController {
                 this.tableService.addTable(databaseName, tableName, columnDefinitions);
 
             }
+
+            if (statement instanceof CreateIndex) {
+                System.out.println("Unsupported SQL statement: " + query);
+            }
+
             if (statement instanceof Select) {
                 Select selectStatement = (Select) statement;
                 PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-
+                Expression whereExpression = plainSelect.getWhere();
+                System.out.println(whereExpression);
                 // Kiểm tra các cột được chọn
                 List<SelectItem> selectItems = plainSelect.getSelectItems();
                 if (selectItems.size() == 1 && selectItems.get(0).toString().equals("*")) {

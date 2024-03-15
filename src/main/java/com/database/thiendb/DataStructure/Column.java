@@ -4,13 +4,15 @@ public class Column {
     private String name;
     private String dataType;
     private boolean isPrimaryKey;
+    private boolean isIndex;
     private String defaultValue;
 
-    public Column(String name, String dataType, boolean isPrimaryKey, String defaultValue) {
+    public Column(String name, String dataType, boolean isPrimaryKey, String defaultValue, boolean isIndex) {
         this.name = name;
         this.dataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
         this.defaultValue = defaultValue;
+        this.isIndex = isIndex;
     }
 
     public String getName() {
@@ -44,7 +46,14 @@ public class Column {
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
+    public boolean isIndex() {
+        return isIndex;
+    }
 
+    public void setIndex(boolean index) {
+        isIndex = index;
+    }
+    
     // Phương thức để lấy loại dữ liệu cơ bản
     private String getBaseDataType(String dataType) {
         int parenIndex = dataType.indexOf("(");

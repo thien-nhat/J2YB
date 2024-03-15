@@ -7,30 +7,35 @@
           "name": "PersonID",
           "dataType": "int",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "NULL"
         },
         {
           "name": "LastName",
           "dataType": "varchar (255)",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "NULL"
         },
         {
           "name": "FirstName",
           "dataType": "varchar (255)",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "NULL"
         },
         {
           "name": "Address",
           "dataType": "varchar (255)",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "NULL"
         },
         {
           "name": "City",
           "dataType": "varchar (255)",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "NULL"
         }
       ],
@@ -42,29 +47,25 @@
           "name": "id",
           "dataType": "int",
           "isPrimaryKey": true,
+          "isIndex": true,
           "defaultValue": ""
         },
         {
           "name": "name",
           "dataType": "string",
           "isPrimaryKey": false,
+          "isIndex": false,
           "defaultValue": "Anonymous"
         },
         {
           "name": "age",
           "dataType": "int",
           "isPrimaryKey": false,
+          "isIndex": true,
           "defaultValue": ""
         }
       ],
       "rows": [
-        {
-          "values": [
-            1.0,
-            "Thien",
-            21.0
-          ]
-        },
         {
           "values": [
             1.0,
@@ -84,6 +85,13 @@
             3.0,
             "Nhat",
             22.0
+          ]
+        },
+        {
+          "values": [
+            6.0,
+            "Thien",
+            23.0
           ]
         },
         {
