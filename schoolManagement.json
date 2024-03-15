@@ -47,7 +47,7 @@
           "name": "id",
           "dataType": "int",
           "isPrimaryKey": true,
-          "isIndex": true,
+          "isIndex": false,
           "defaultValue": ""
         },
         {
@@ -97,7 +97,7 @@
         {
           "values": [
             4.0,
-            "Anh",
+            "Juan",
             25.0
           ]
         },

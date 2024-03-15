@@ -1,7 +1,9 @@
 package com.database.thiendb.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
 import com.database.thiendb.Service.DatabaseService;
+import com.database.thiendb.Service.QueryService;
 import com.database.thiendb.Service.RowService;
 import com.database.thiendb.Service.TableService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,13 +29,17 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 
 @RestController
@@ -41,30 +48,14 @@ public class QueryController {
     private final DatabaseService databaseService;
     private final TableService tableService;
     private final RowService rowService;
+    private final QueryService queryService;
 
-    public QueryController(DatabaseService databaseService, TableService tableService, RowService rowService) {
+    public QueryController(DatabaseService databaseService, TableService tableService, RowService rowService,
+            QueryService queryService) {
         this.databaseService = databaseService;
         this.tableService = tableService;
         this.rowService = rowService;
-    }
-
-    private Object parseValue(String trimmedValue) {
-        if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
-            // Remove single quotes for string literals
-            return trimmedValue.substring(1, trimmedValue.length() - 1);
-        } else {
-            // Convert other values directly
-            if (trimmedValue.matches("-?\\d+")) {
-                // If the value consists of digits only, it's an integer
-                return Integer.parseInt(trimmedValue);
-            } else if (trimmedValue.matches("-?\\d+\\.\\d+")) {
-                // If the value is in decimal format, it's a double
-                return Double.parseDouble(trimmedValue);
-            } else {
-                // Otherwise, treat it as a string
-                return trimmedValue;
-            }
-        }
+        this.queryService = queryService;
     }
 
     @PostMapping("/parse-sql")
@@ -96,91 +87,32 @@ public class QueryController {
                 this.tableService.addTable(databaseName, tableName, columnDefinitions);
 
             }
-
             if (statement instanceof CreateIndex) {
-                System.out.println("Unsupported SQL statement: " + query);
+                CreateIndex createIndex = (CreateIndex) statement;
+                Index index = createIndex.getIndex();
+                String indexName = createIndex.getIndex().getName();
+                String tableName = createIndex.getTable().getName();
+                String columnName = index.getColumnsNames().get(0);
+                System.out.println("Index Name: " + indexName);
+
+                tableService.addIndexedColumn(databaseName, tableName, columnName);
             }
-
             if (statement instanceof Select) {
-                Select selectStatement = (Select) statement;
-                PlainSelect plainSelect = (PlainSelect) selectStatement.getSelectBody();
-                Expression whereExpression = plainSelect.getWhere();
-                System.out.println(whereExpression);
-                // Kiểm tra các cột được chọn
-                List<SelectItem> selectItems = plainSelect.getSelectItems();
-                if (selectItems.size() == 1 && selectItems.get(0).toString().equals("*")) {
-                    // Chọn tất cả các cột
-                    Object table = (Object) plainSelect.getFromItem();
-                    String tableName = table.toString();
-                    Table tableData = this.tableService.getTable(databaseName, tableName);
-                    // Check if the row data exists
-                    if (tableData != null) {
-                        // Convert the row data to JSON format
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        try {
-                            String jsonData = objectMapper.writeValueAsString(tableData);
-                            // Return the JSON data as the response
-                            return ResponseEntity.ok(jsonData);
-                        } catch (JsonProcessingException e) { // Handle JSON processing exception
-                            e.printStackTrace();
-                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body("Error processing JSON data");
-                        }
-                    } else {
-                        // Return 404 Not Found if row data does not exist
-                        return ResponseEntity.notFound().build();
-                    }
-                } else {
-                    // Trường hợp chọn các cột cụ thể
-                    Object table = (Object) plainSelect.getFromItem();
-                    String tableName = table.toString();
-                    Table tableData = this.tableService.getTable(databaseName, tableName);
-
-                    tableData.getSelectedElements(selectItems);
-                    if (tableData != null) {
-                        // Convert the row data to JSON format
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        try {
-                            String jsonData = objectMapper.writeValueAsString(tableData);
-                            // Return the JSON data as the response
-                            return ResponseEntity.ok(jsonData);
-                        } catch (JsonProcessingException e) { // Handle JSON processing exception
-                            e.printStackTrace();
-                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body("Error processing JSON data");
-                        }
-                    }
-                }
+                Table tableData = queryService.handleSelectStatement(statement, databaseName);
+                return ResponseEntity.ok().body(tableData.getRows());
             }
             if (statement instanceof Insert) {
-                System.out.println("Executing addRow()");
-                Insert insertStatement = (Insert) statement;
-                String tableName = insertStatement.getTable().getName();
-                ItemsList valuesStatement = insertStatement.getItemsList();
-                String valuesString = valuesStatement.toString();
-                // Remove parentheses and split by comma
-                String[] valueStrings = valuesString.substring(1, valuesString.length() - 1).split(",");
-
-                // Trim each value and remove single quotes if present
-                Object[] values = new Object[valueStrings.length];
-                for (int i = 0; i < valueStrings.length; i++) {
-                    String trimmedValue = valueStrings[i].trim();
-                    values[i] = parseValue(trimmedValue);
-                }
-                Row rowRequest = new Row(values);
-                this.rowService.addRow(databaseName, tableName, rowRequest);
+                this.queryService.handleInsertStatement(statement, databaseName);
+                return ResponseEntity.ok(query);
             }
             if (statement instanceof Update) {
-                System.out.println("Executing updateRow()");
-                // Trích xuất thông tin từ câu lệnh Update
                 Update updateStatement = (Update) statement;
-                String tableName = updateStatement.getTable().getName();
 
-                // Lấy danh sách cập nhật cột và giá trị tương ứng
+                // Get a list of updated columns and their corresponding values
                 List<Column> columns = updateStatement.getColumns();
                 List<Expression> expressions = updateStatement.getExpressions();
 
-                // Tạo một danh sách cập nhật (cột và giá trị tương ứng)
+                // Create an updated list (columns and corresponding values)
                 HashMap<String, Expression> updates = new HashMap<>();
 
                 for (int i = 0; i < columns.size(); i++) {
@@ -188,24 +120,15 @@ public class QueryController {
                     Expression expression = expressions.get(i);
                     updates.put(column.getColumnName(), expression);
                 }
-
-                // Trích xuất điều kiện của câu lệnh Update
-                Expression where = updateStatement.getWhere();
-                String condition = where.toString();
-                String[] parts = condition.split("="); // Split the condition string into parts
-                String columnName = parts[0].trim(); // Extract the column name
-                // Object value = parts[1].trim(); // Extract the value
-                Object value = parseValue(parts[1].trim());
-
-                // Gọi phương thức để thực thi truy vấn cập nhật
-                this.rowService.updateRowByCondition(databaseName, tableName, columnName, value, updates);
-
+                this.queryService.handleUpdateStatement(databaseName, updateStatement, updates);
+                return ResponseEntity.ok(query);
             }
 
             if (statement instanceof Delete) {
                 Delete deleteStatement = (Delete) statement;
                 String tableName = deleteStatement.getTable().getName();
                 this.tableService.deleteTable(databaseName, tableName);
+                return ResponseEntity.ok(query);
             }
 
         } catch (JSQLParserException e) {

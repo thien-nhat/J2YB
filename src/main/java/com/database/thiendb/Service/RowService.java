@@ -22,6 +22,7 @@ public class RowService {
         this.databaseRepository = databaseRepository;
     }
 
+    // Function 2 is repeated
     private Object parseValue(String trimmedValue) {
         if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
             // Remove single quotes for string literals
@@ -41,6 +42,7 @@ public class RowService {
 
         }
     }
+
     public Row getRow(String databaseName, String tableName, Integer rowId) {
         Database database = databaseRepository.findDatabaseByName(databaseName);
         if (database != null) {
@@ -92,7 +94,8 @@ public class RowService {
 
         this.databaseRepository.save(database);
     }
-
+    
+    // Cái này sẽ chuyển về Query service
     public void updateRowByCondition(String databaseName, String tableName, String columnName, Object value,
             HashMap<String, Expression> updates) {
         // Retrieve the database
@@ -135,9 +138,6 @@ public class RowService {
 
     // Method to evaluate the update expression and get the new value
     private Object evaluateExpression(Expression expression) {
-        // Implement the logic to evaluate the expression
-        // For simplicity, you can assume the expression directly evaluates to the new
-        // value
         return expression.toString(); // Return the string representation of the expression
     }
 

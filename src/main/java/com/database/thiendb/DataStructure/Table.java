@@ -24,6 +24,14 @@ public class Table {
         return columns;
     }
 
+    public ArrayList<Row> getRows() {
+        return rows;
+    }
+
+    public void setRows(ArrayList<Row> rows) {
+        this.rows = rows;
+    }
+
     // Get column by name
     public Column getColumnByName(String columnName) {
         for (Column column : columns) {
@@ -32,10 +40,6 @@ public class Table {
             }
         }
         return null; // Return null if column not found
-    }
-
-    public ArrayList<Row> getRows() {
-        return rows;
     }
 
     // Sắp xếp lại các hàng theo một cột
@@ -56,7 +60,6 @@ public class Table {
         column.setIndex(true);
         sortRowsByColumn(columnName);
     }
-
 
     // Search for a row by an indexed column
     public Row findRowByIndexedColumn(String columnName, Object value) {
@@ -109,21 +112,23 @@ public class Table {
 
     private boolean areValuesEqual(Object columnValue, Object value) {
         if (columnValue instanceof Number && value instanceof Number) {
+            System.out.println("Number");
             // If both values are numbers, convert them to double and compare
             double columnDouble = ((Number) columnValue).doubleValue();
             double valueDouble = ((Number) value).doubleValue();
             return Double.compare(columnDouble, valueDouble) == 0;
         } else {
+            System.out.println("Not Number");
+
             // Otherwise, use the default equals method for comparison
             return columnValue.equals(value);
         }
     }
 
+    // Function 1 is repeated
     public Row findRowByCondition(String columnName, Object value) {
         System.out.println("Find row by condition");
-        // System.out.println(columnName);
-        // System.out.println(value);
-
+        System.out.println(value);
         // Iterate over each row in the table
         for (Row row : rows) {
             // Get the index of the column with the given name
@@ -142,6 +147,33 @@ public class Table {
         }
         // Return null if no row matches the condition
         return null;
+    }
+
+    // Function 1 is repeated
+    public ArrayList<Row> findRowsByCondition(String columnName, Object value) {
+        System.out.println("Find row by condition");
+        System.out.println(value);
+        ArrayList<Row> filteredRows = new ArrayList<>();
+
+        // Iterate over each row in the table
+        for (Row row : rows) {
+            // Get the index of the column with the given name
+            int columnIndex = getColumnIndex(columnName);
+            if (columnIndex != -1) {
+                // Retrieve the value of the column from the row
+                Object columnValue = row.getValues()[columnIndex];
+                System.out.println(columnValue);
+                // Check if the column value matches the given value
+                if (areValuesEqual(columnValue, value)) {
+                    // Return the row if the condition is met
+                    // return row;
+                    filteredRows.add(row);
+
+                }
+            }
+        }
+        // Return null if no row matches the condition
+        return filteredRows;
     }
 
     public ArrayList<Row> getRows(List<SelectItem> selectedColumnNames) {
