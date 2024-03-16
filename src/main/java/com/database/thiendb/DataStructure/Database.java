@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 import org.springframework.stereotype.Component;
 
+import com.database.thiendb.Exception.ObjectNotFoundException;
+
 @Component
 public class Database {
 
@@ -40,7 +42,7 @@ public class Database {
             Table table = tables.remove(tableName);
             tables.put(newTableName, table);
         } else {
-            System.out.println("Don't have this table in the database");
+            throw new ObjectNotFoundException("Table '" + tableName + "' not found in database.");
         }
     }
 

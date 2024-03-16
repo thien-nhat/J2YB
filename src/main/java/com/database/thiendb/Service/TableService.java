@@ -10,6 +10,7 @@ import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
 import com.database.thiendb.Repository.DatabaseRepository;
+import com.database.thiendb.Utils.SharedFunction;
 
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 
@@ -17,9 +18,11 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 public class TableService {
     @Autowired
     private DatabaseRepository databaseRepository;
-    
+    private final SharedFunction sharedFunction;
+
     public TableService(DatabaseRepository databaseRepository) {
         this.databaseRepository = databaseRepository;
+        this.sharedFunction = new SharedFunction();
     }
 
     public Table getTable(String databaseName, String tableName) {
@@ -74,10 +77,11 @@ public class TableService {
         table.addIndexedColumn(columnName);
         this.databaseRepository.save(database);
     }
+
     public Row findIndexedColumnByName(String databaseName, String tableName, String columnName, Object value) {
         // TODO
         Database database = databaseRepository.findDatabaseByName(databaseName);
         Table table = database.getTable(tableName);
-        return table.findRowByIndexedColumn(columnName, value);
+        return sharedFunction.findRowByIndexedColumn(table, columnName, value);
     }
 }

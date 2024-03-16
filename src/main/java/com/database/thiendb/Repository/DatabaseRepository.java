@@ -37,9 +37,7 @@ public class DatabaseRepository {
     public Database findDatabaseByName(String databaseName) {
         String fileName = databaseName + ".json";
         File file = new File(fileName);
-        System.out.println(file);
         if (file.exists()) {
-            System.out.println("hello");
             Gson gson = new GsonBuilder().create();
 
             try {
@@ -51,8 +49,6 @@ public class DatabaseRepository {
 
                 // Đóng tập tin
                 reader.close();
-
-                System.out.println("Data imported from JSON file successfully.");
                 return database;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -95,8 +91,6 @@ public class DatabaseRepository {
 
             // Đóng tập tin
             writer.close();
-
-            System.out.println("Data exported to JSON file successfully.");
         } catch (IOException e) {
             e.printStackTrace();
         }

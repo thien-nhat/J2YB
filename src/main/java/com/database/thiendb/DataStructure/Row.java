@@ -42,13 +42,6 @@ public class Row {
         return null;
     }
 
-    // public Object getValueByColumnIndex(Integer columnIndex) {
-    //     if (columnIndex != -1) {
-    //         return values[columnIndex];
-    //     }
-    //     return null;
-    // }
-
     public void setValues(Object[] values) {
         this.values = values;
     }

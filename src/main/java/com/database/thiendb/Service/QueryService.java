@@ -3,15 +3,16 @@ package com.database.thiendb.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.database.thiendb.DataStructure.Column;
 import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Exception.ObjectNotFoundException;
+import com.database.thiendb.Repository.DatabaseRepository;
+import com.database.thiendb.Utils.SharedFunction;
 
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -25,101 +26,83 @@ import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 
 @Service
 public class QueryService {
+    private final DatabaseRepository databaseRepository;
     private final TableService tableService;
     private final RowService rowService;
+    private final SharedFunction sharedFunction;
 
-    public QueryService(TableService tableService, RowService rowService) {
+    public QueryService(DatabaseRepository databaseRepository, TableService tableService, RowService rowService) {
+        this.databaseRepository = databaseRepository;
         this.tableService = tableService;
         this.rowService = rowService;
+        this.sharedFunction = new SharedFunction();
     }
 
-    private Object parseValue(String trimmedValue) {
-        if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
-            // Remove single quotes for string literals
-            return trimmedValue.substring(1, trimmedValue.length() - 1);
-        } else {
-            // Convert other values directly
-            if (trimmedValue.matches("-?\\d+")) {
-                // If the value consists of digits only, it's an integer
-                return Integer.parseInt(trimmedValue);
-            } else if (trimmedValue.matches("-?\\d+\\.\\d+")) {
-                // If the value is in decimal format, it's a double
-                return Double.parseDouble(trimmedValue);
-            } else {
-                // Otherwise, treat it as a string
-                return trimmedValue;
+
+    public Row findRowByCondition(Table table, String columnName, Object value) {
+        // Iterate over each row in the table
+        for (Row row : table.getRows()) {
+            // Get the index of the column with the given name
+            int columnIndex = table.getColumnIndex(columnName);
+            System.out.println(columnIndex);
+            if (columnIndex != -1) {
+                // Retrieve the value of the column from the row
+                Object columnValue = row.getValues()[columnIndex];
+                System.out.println(columnValue);
+                // Check if the column value matches the given value
+                if (sharedFunction.compareValues(columnValue, value, "=")) {
+                    // Return the row if the condition is met
+                    return row;
+                }
             }
         }
+        // Return null if no row matches the condition
+        return null;
     }
 
-    // // Function 1 is repeated
-    private boolean isValueEqual(Object columnValue, Object value) {
-        if (columnValue instanceof Number && value instanceof Number) {
-            double columnDouble = ((Number) columnValue).doubleValue();
-            double valueDouble = ((Number) value).doubleValue();
-            return Double.compare(columnDouble, valueDouble) == 0;
-        } else {
-            return columnValue.equals(value);
+    // HANDLE ROW
+
+    private void updateRowByCondition(String databaseName, String tableName, String columnName, Object value,
+            HashMap<String, Expression> updates) {
+        // Retrieve the database
+        Database database = databaseRepository.findDatabaseByName(databaseName);
+
+        if (database == null) {
+            throw new ObjectNotFoundException("Database '" + databaseName + "' not found.");
         }
-    }
 
-    private boolean isValueLessThan(Object columnValue, Object value) {
-        if (columnValue instanceof Number && value instanceof Number) {
-            double columnDouble = ((Number) columnValue).doubleValue();
-            double valueDouble = ((Number) value).doubleValue();
-            return columnDouble < valueDouble;
-        } else {
-            return columnValue.equals(value);
+        // Retrieve the table
+        Table table = database.getTable(tableName);
+        if (table == null) {
+            throw new ObjectNotFoundException("Table '" + tableName + "' not found in database '" + databaseName + "'.");
         }
-    }
 
-    private boolean isValueGreaterThan(Object columnValue, Object value) {
-        if (columnValue instanceof Number && value instanceof Number) {
-            double columnDouble = ((Number) columnValue).doubleValue();
-            double valueDouble = ((Number) value).doubleValue();
-            return columnDouble > valueDouble;
-        } else {
-            return columnValue.equals(value);
+        // Find the row based on the condition
+        Row rowToUpdate = findRowByCondition(table, columnName, value);
+        if (rowToUpdate == null) {
+            throw new ObjectNotFoundException("Row with condition '" + columnName + " = " + value + "' not found in table '"
+            + tableName + "'.");
         }
-    }
 
-    private boolean evaluateExpression(Object columnValue, Object value, String operator) {
-
-        switch (operator) {
-            case "=":
-                return isValueEqual(columnValue, value);
-            case "<":
-                return isValueLessThan(columnValue, value);
-            case ">":
-                return isValueGreaterThan(columnValue, value);
-            default:
-                return false;
-        }
-    }
-
-    // Search for a row by an indexed column
-    public Row findRowByIndexedColumn(Table table, String columnName, Object value) {
-        ArrayList<Row> rows = table.getRows();
-        ArrayList<Column> columns = table.getColumns();
-
-        int left = 0;
-        int right = rows.size() - 1;
-
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            Row midRow = rows.get(mid);
-            Object midValue = midRow.getValueByColumn(columnName, columns);
-            if (midValue != null && isValueEqual(midValue, value)) {
-                return midRow; // Found the row with the matching value
-            } else if (midValue == null || isValueLessThan(midValue, value)) {
-                left = mid + 1; // Search in the right half
-            } else {
-                right = mid - 1; // Search in the left half
+        // Update the row with the provided updates
+        for (Map.Entry<String, Expression> entry : updates.entrySet()) {
+            String updateColumnName = entry.getKey();
+            Expression updateExpression = entry.getValue();
+            // Find the index of the column to update
+            int columnIndex = table.getColumnIndex(updateColumnName);
+            if (columnIndex != -1) {
+                // Evaluate the update expression and set the new value
+                Object newValue = sharedFunction.parseValue(updateExpression.toString());
+                rowToUpdate.getValues()[columnIndex] = newValue;
             }
         }
+        System.out.println("Row updated successfully.");
 
-        return null; // Row not found
+        // Save the changes to the database
+        this.databaseRepository.save(database);
     }
+    
+    // HANDLE CONDITION
 
     private void applyWhereClause(Table table, Expression whereExpression) {
         ArrayList<Row> filteredRows = new ArrayList<>();
@@ -132,18 +115,18 @@ public class QueryService {
             String operator = binaryExpression.getStringExpression();
 
             String columnName = leftExpression.toString();
-            Object value = parseValue(rightExpression.toString());
+            Object value = sharedFunction.parseValue(rightExpression.toString());
             ArrayList<Row> rows = table.getRows();
             // Perform comparison based on the operator, if indexes so use another find
 
             if (table.getColumnByName(columnName).isIndex() && operator == "=") {
-                filteredRows.add(findRowByIndexedColumn(table, columnName, value));
+                filteredRows.add(sharedFunction.findRowByIndexedColumn(table, columnName, value));
             } else {
                 for (Row row : rows) {
                     int columnIndex = table.getColumnIndex(columnName);
                     if (columnIndex != -1) {
                         Object columnValue = row.getValues()[columnIndex];
-                        if (evaluateExpression(columnValue, value, operator)) {
+                        if (sharedFunction.compareValues(columnValue, value, operator)) {
                             filteredRows.add(row);
                         }
                     }
@@ -152,6 +135,8 @@ public class QueryService {
             table.setRows(filteredRows);
         }
     }
+
+    // HANDLE QUERY
 
     public Table handleSelectStatement(Statement statement, String databaseName) {
         Select selectStatement = (Select) statement;
@@ -163,7 +148,7 @@ public class QueryService {
         // Get the table data
         Table tableData = this.tableService.getTable(databaseName, tableName);
         if (tableData == null) {
-            throw new RuntimeException("Table not found: " + tableName);
+            throw new ObjectNotFoundException("Table not found: " + tableName);
         }
 
         // Apply WHERE clause conditions to filter rows
@@ -196,23 +181,24 @@ public class QueryService {
         Object[] values = new Object[valueStrings.length];
         for (int i = 0; i < valueStrings.length; i++) {
             String trimmedValue = valueStrings[i].trim();
-            values[i] = parseValue(trimmedValue);
+            values[i] = sharedFunction.parseValue(trimmedValue);
         }
         Row rowRequest = new Row(values);
         this.rowService.addRow(databaseName, tableName, rowRequest);
     }
 
-    public void handleUpdateStatement(String databaseName, Update updateStatement, HashMap<String, Expression> updates) {
+    public void handleUpdateStatement(String databaseName, Update updateStatement,
+            HashMap<String, Expression> updates) {
         String tableName = updateStatement.getTable().getName();
         // Extract the conditions of the Update statement
         Expression where = updateStatement.getWhere();
         String condition = where.toString();
         String[] parts = condition.split("="); // Split the condition string into parts
         String columnName = parts[0].trim(); // Extract the column name
-        Object value = parseValue(parts[1].trim());
+        Object value = sharedFunction.parseValue(parts[1].trim());
 
         // Gọi phương thức để thực thi truy vấn cập nhật
-        this.rowService.updateRowByCondition(databaseName, tableName, columnName, value, updates);
+        updateRowByCondition(databaseName, tableName, columnName, value, updates);
     }
 
 }

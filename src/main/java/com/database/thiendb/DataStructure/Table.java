@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.database.thiendb.Exception.InvalidRequestException;
+
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 public class Table {
@@ -61,28 +63,6 @@ public class Table {
         sortRowsByColumn(columnName);
     }
 
-    // Search for a row by an indexed column
-    public Row findRowByIndexedColumn(String columnName, Object value) {
-
-        int left = 0;
-        int right = this.rows.size() - 1;
-
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            Row midRow = rows.get(mid);
-            Object midValue = midRow.getValueByColumn(columnName, columns);
-            if (midValue != null && midValue.equals(value)) {
-                return midRow; // Found the row with the matching value
-            } else if (midValue == null || ((Comparable) midValue).compareTo(value) < 0) {
-                left = mid + 1; // Search in the right half
-            } else {
-                right = mid - 1; // Search in the left half
-            }
-        }
-
-        return null; // Row not found
-    }
-
     // Kiểm tra xem một cột có phải là cột index không
     public boolean isColumnIndexed(Column column) {
         return column.isIndex();
@@ -99,7 +79,6 @@ public class Table {
         return indexedColumns;
     }
 
-    //
     // Lấy số thứ tự của Column đó trong bảng
     public int getColumnIndex(String columnName) {
         for (int i = 0; i < this.columns.size(); i++) {
@@ -110,73 +89,8 @@ public class Table {
         return -1;
     }
 
-    private boolean areValuesEqual(Object columnValue, Object value) {
-        if (columnValue instanceof Number && value instanceof Number) {
-            System.out.println("Number");
-            // If both values are numbers, convert them to double and compare
-            double columnDouble = ((Number) columnValue).doubleValue();
-            double valueDouble = ((Number) value).doubleValue();
-            return Double.compare(columnDouble, valueDouble) == 0;
-        } else {
-            System.out.println("Not Number");
-
-            // Otherwise, use the default equals method for comparison
-            return columnValue.equals(value);
-        }
-    }
-
-    // Function 1 is repeated
-    public Row findRowByCondition(String columnName, Object value) {
-        System.out.println("Find row by condition");
-        System.out.println(value);
-        // Iterate over each row in the table
-        for (Row row : rows) {
-            // Get the index of the column with the given name
-            int columnIndex = getColumnIndex(columnName);
-            System.out.println(columnIndex);
-            if (columnIndex != -1) {
-                // Retrieve the value of the column from the row
-                Object columnValue = row.getValues()[columnIndex];
-                System.out.println(columnValue);
-                // Check if the column value matches the given value
-                if (areValuesEqual(columnValue, value)) {
-                    // Return the row if the condition is met
-                    return row;
-                }
-            }
-        }
-        // Return null if no row matches the condition
-        return null;
-    }
-
-    // Function 1 is repeated
-    public ArrayList<Row> findRowsByCondition(String columnName, Object value) {
-        System.out.println("Find row by condition");
-        System.out.println(value);
-        ArrayList<Row> filteredRows = new ArrayList<>();
-
-        // Iterate over each row in the table
-        for (Row row : rows) {
-            // Get the index of the column with the given name
-            int columnIndex = getColumnIndex(columnName);
-            if (columnIndex != -1) {
-                // Retrieve the value of the column from the row
-                Object columnValue = row.getValues()[columnIndex];
-                System.out.println(columnValue);
-                // Check if the column value matches the given value
-                if (areValuesEqual(columnValue, value)) {
-                    // Return the row if the condition is met
-                    // return row;
-                    filteredRows.add(row);
-
-                }
-            }
-        }
-        // Return null if no row matches the condition
-        return filteredRows;
-    }
-
-    public ArrayList<Row> getRows(List<SelectItem> selectedColumnNames) {
+    // Function to select specific columns  from table
+    public ArrayList<Row> filterRowsByColumnNames(List<SelectItem> selectedColumnNames) {
         ArrayList<Row> rowResult = new ArrayList<>();
         for (Row row : rows) {
             Object[] selectedValues = new Object[selectedColumnNames.size()];
@@ -192,7 +106,8 @@ public class Table {
         return rowResult;
     }
 
-    public ArrayList<Column> getColumns(List<SelectItem> selectedColumnNames) {
+    // Function to select specific columns from table
+    public ArrayList<Column> filterColumnsByName(List<SelectItem> selectedColumnNames) {
         ArrayList<Column> selectedColumns = new ArrayList<>();
         for (SelectItem selectedItem : selectedColumnNames) {
             String columnName = selectedItem.toString();
@@ -204,29 +119,18 @@ public class Table {
         return selectedColumns;
     }
 
+    // Function to select specific columns from table
     public void getSelectedElements(List<SelectItem> selectedColumnNames) {
-        this.rows = getRows(selectedColumnNames);
-        this.columns = getColumns(selectedColumnNames);
+        this.rows = filterRowsByColumnNames(selectedColumnNames);
+        this.columns = filterColumnsByName(selectedColumnNames);
     }
 
-    public void printSelectedRow(List<SelectItem> selectedColumnNames) {
-        ArrayList<Row> selectedRows = getRows(selectedColumnNames);
-        for (Row row : selectedRows) {
-            System.out.println(row);
-        }
-        System.out.println("Return column");
-        ArrayList<Column> selectedColumns = getColumns(selectedColumnNames);
-        for (Column column : selectedColumns) {
-            System.out.println(column);
-        }
-    }
-
-    // Check valid value
+    // Check valid of value
     private boolean checkValidValue(Object[] values) {
         for (int i = 0; i < values.length; i++) {
             if (!columns.get(i).isValidValue(values[i])) {
-                System.out.println("Invalid value for column " + columns.get(i).getName());
-                return false;
+                throw new InvalidRequestException("Invalid value for column " + columns.get(i).getName());
+                // return false;
             }
         }
         return true;
@@ -247,7 +151,7 @@ public class Table {
                 return;
             }
         } else {
-            System.out.println("Number of values doesn't match number of columns.");
+            throw new InvalidRequestException("Number of values doesn't match number of columns.");
         }
     }
 
@@ -260,7 +164,7 @@ public class Table {
                 return;
             }
         } else {
-            System.out.println("Number of values doesn't match number of columns.");
+            throw new InvalidRequestException("Number of values doesn't match number of columns.");
         }
     }
 
