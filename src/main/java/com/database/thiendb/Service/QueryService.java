@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.database.thiendb.DataStructure.Column;
 import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
@@ -16,6 +17,7 @@ import com.database.thiendb.Utils.SharedFunction;
 
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
@@ -38,17 +40,16 @@ public class QueryService {
         this.sharedFunction = new SharedFunction();
     }
 
-
     public Row findRowByCondition(Table table, String columnName, Object value) {
         // Iterate over each row in the table
         for (Row row : table.getRows()) {
             // Get the index of the column with the given name
             int columnIndex = table.getColumnIndex(columnName);
-            System.out.println(columnIndex);
+            // System.out.println(columnIndex);
             if (columnIndex != -1) {
                 // Retrieve the value of the column from the row
                 Object columnValue = row.getValues()[columnIndex];
-                System.out.println(columnValue);
+                // System.out.println(columnValue);
                 // Check if the column value matches the given value
                 if (sharedFunction.compareValues(columnValue, value, "=")) {
                     // Return the row if the condition is met
@@ -74,14 +75,16 @@ public class QueryService {
         // Retrieve the table
         Table table = database.getTable(tableName);
         if (table == null) {
-            throw new ObjectNotFoundException("Table '" + tableName + "' not found in database '" + databaseName + "'.");
+            throw new ObjectNotFoundException(
+                    "Table '" + tableName + "' not found in database '" + databaseName + "'.");
         }
 
         // Find the row based on the condition
         Row rowToUpdate = findRowByCondition(table, columnName, value);
         if (rowToUpdate == null) {
-            throw new ObjectNotFoundException("Row with condition '" + columnName + " = " + value + "' not found in table '"
-            + tableName + "'.");
+            throw new ObjectNotFoundException(
+                    "Row with condition '" + columnName + " = " + value + "' not found in table '"
+                            + tableName + "'.");
         }
 
         // Update the row with the provided updates
@@ -101,7 +104,7 @@ public class QueryService {
         // Save the changes to the database
         this.databaseRepository.save(database);
     }
-    
+
     // HANDLE CONDITION
 
     private void applyWhereClause(Table table, Expression whereExpression) {
@@ -136,6 +139,59 @@ public class QueryService {
         }
     }
 
+    private Row combineRows(Row mainRow, Row joinRow) {
+        Object[] combinedValues = new Object[mainRow.getValues().length + joinRow.getValues().length];
+
+        // Copy values from main row
+        System.arraycopy(mainRow.getValues(), 0, combinedValues, 0, mainRow.getValues().length);
+
+        // Copy values from join row
+        System.arraycopy(joinRow.getValues(), 0, combinedValues, mainRow.getValues().length,
+                joinRow.getValues().length);
+
+        return new Row(combinedValues);
+    }
+
+    // // Check if a column with the same name already exists in the main table
+    // private boolean columnExists(Table mainTableData, Column column) {
+    //     ArrayList<Column> columns = mainTableData.getColumns();
+
+    //     for (Column existingColumn : columns) {
+    //         if (existingColumn.getName().equals(column.getName())) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
+
+    private void applyInnerJoin(Table mainTableData, Table joinTableData, Expression onExpression) {
+
+        ArrayList<Row> resultRows = new ArrayList<>();
+
+        for (Row mainRow : mainTableData.getRows()) {
+            // Get the value of the join column from the main table
+            String joinColumnName = ((BinaryExpression) onExpression).getLeftExpression().toString();
+            int joinColumnIndex = mainTableData.getColumnIndex(joinColumnName);
+
+            Object joinColumnValue = mainRow.getValues()[joinColumnIndex];
+
+            // Find matching rows in the join table based on the join column value
+            Row matchingJoinRow = findRowByCondition(joinTableData, joinColumnName, joinColumnValue);
+            // If matching row is found, combine the data from main table row and join table
+            if (matchingJoinRow != null) {
+                Row newRow = combineRows(mainRow, matchingJoinRow);
+                // resultTable.addRow(newRow);
+                resultRows.add(newRow);
+
+            }
+        }
+        mainTableData.setRows(resultRows);
+        for (Column joinColumn : joinTableData.getColumns()) {
+            // Check if the column already exists in the main table
+                mainTableData.getColumns().add(joinColumn);
+        }
+        
+    }
     // HANDLE QUERY
 
     public Table handleSelectStatement(Statement statement, String databaseName) {
@@ -151,12 +207,26 @@ public class QueryService {
             throw new ObjectNotFoundException("Table not found: " + tableName);
         }
 
-        // Apply WHERE clause conditions to filter rows
+        // Handle WHERE clause conditions to filter rows
         Expression whereExpression = plainSelect.getWhere();
         if (whereExpression != null) {
             applyWhereClause(tableData, whereExpression);
         }
 
+        // Handle JOIN
+        List<Join> joins = plainSelect.getJoins();
+        if (joins != null) {
+            for (Join join : joins) {
+                String joinTableName = join.getRightItem().toString();
+                Table joinTableData = this.tableService.getTable(databaseName, joinTableName);
+                if (joinTableData == null) {
+                    throw new ObjectNotFoundException("Table not found: " + joinTableName);
+                }
+                // INNER JOIN
+                applyInnerJoin(tableData, joinTableData, join.getOnExpression());
+            }
+        }
+        System.out.println("Handle SELECT select");
         // Handle SELECT items
         List<SelectItem> selectItems = plainSelect.getSelectItems();
         if (selectItems.size() == 1 && selectItems.get(0).toString().equals("*")) {

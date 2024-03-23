@@ -82,7 +82,7 @@ public class QueryController {
             }
             if (statement instanceof Select) {
                 Table tableData = queryService.handleSelectStatement(statement, databaseName);
-                return ResponseEntity.ok().body(tableData.getRows());
+                return ResponseEntity.ok().body(tableData);
             }
             if (statement instanceof Insert) {
                 this.queryService.handleInsertStatement(statement, databaseName);

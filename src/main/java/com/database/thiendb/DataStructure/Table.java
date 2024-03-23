@@ -151,6 +151,7 @@ public class Table {
                 return;
             }
         } else {
+            System.out.println("Number of values doesn't match number of columns.");
             throw new InvalidRequestException("Number of values doesn't match number of columns.");
         }
     }
