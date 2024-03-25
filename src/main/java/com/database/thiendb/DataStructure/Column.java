@@ -6,7 +6,10 @@ public class Column {
     private boolean isPrimaryKey;
     private boolean isIndex;
     private String defaultValue;
-
+    private boolean isForeignKey;
+    private String referencedTableName; // Name of the referenced table
+    private String referencedColumnName; // Name of the referenced column
+    
     public Column(String name, String dataType, boolean isPrimaryKey, String defaultValue, boolean isIndex) {
         this.name = name;
         this.dataType = dataType;
@@ -54,6 +57,30 @@ public class Column {
         isIndex = index;
     }
     
+    public boolean isForeignKey() {
+        return isForeignKey;
+    }
+
+    public void setForeignKey(boolean isForeignKey) {
+        this.isForeignKey = isForeignKey;
+    }
+
+    public String getReferencedTableName() {
+        return referencedTableName;
+    }
+
+    public void setReferencedTableName(String referencedTableName) {
+        this.referencedTableName = referencedTableName;
+    }
+
+    public String getReferencedColumnName() {
+        return referencedColumnName;
+    }
+
+    public void setReferencedColumnName(String referencedColumnName) {
+        this.referencedColumnName = referencedColumnName;
+    }
+
     // Phương thức để lấy loại dữ liệu cơ bản
     private String getBaseDataType(String dataType) {
         int parenIndex = dataType.indexOf("(");

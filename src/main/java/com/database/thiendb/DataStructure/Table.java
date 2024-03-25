@@ -89,7 +89,7 @@ public class Table {
         return -1;
     }
 
-    // Function to select specific columns  from table
+    // Function to select specific columns from table
     public ArrayList<Row> filterRowsByColumnNames(List<SelectItem> selectedColumnNames) {
         ArrayList<Row> rowResult = new ArrayList<>();
         for (Row row : rows) {
@@ -134,6 +134,20 @@ public class Table {
             }
         }
         return true;
+    }
+
+    // Method to add foreign key constraint
+    public void addForeignKey(String columnName, String referencedTableName, String referencedColumnName) {
+        for (Column column : columns) {
+            if (column.getName().equals(columnName)) {
+                // Set foreign key properties for the column
+                column.setForeignKey(true);
+                column.setReferencedTableName(referencedTableName);
+                column.setReferencedColumnName(referencedColumnName);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Column not found: " + columnName);
     }
 
     public Row getRow(Integer rowId) {

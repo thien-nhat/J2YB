@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -152,18 +154,6 @@ public class QueryService {
         return new Row(combinedValues);
     }
 
-    // // Check if a column with the same name already exists in the main table
-    // private boolean columnExists(Table mainTableData, Column column) {
-    //     ArrayList<Column> columns = mainTableData.getColumns();
-
-    //     for (Column existingColumn : columns) {
-    //         if (existingColumn.getName().equals(column.getName())) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-
     private void applyInnerJoin(Table mainTableData, Table joinTableData, Expression onExpression) {
 
         ArrayList<Row> resultRows = new ArrayList<>();
@@ -188,11 +178,54 @@ public class QueryService {
         mainTableData.setRows(resultRows);
         for (Column joinColumn : joinTableData.getColumns()) {
             // Check if the column already exists in the main table
-                mainTableData.getColumns().add(joinColumn);
+            mainTableData.getColumns().add(joinColumn);
         }
-        
+
     }
+
     // HANDLE QUERY
+    public Table handleAlterStatement(Statement statement, String databaseName) {
+        String sqlExpression = statement.toString();
+        Pattern mainTablePattern = Pattern.compile("ALTER\\s+TABLE\\s+(\\S+)");
+        Pattern constraintPattern = Pattern.compile("ADD\\s+CONSTRAINT\\s+(\\S+)\\s+FOREIGN\\s+KEY");
+        Pattern columnPattern = Pattern.compile("\\((\\S+)\\)");
+        Pattern tablePattern = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
+
+        // Match the regular expressions against the SQL expression
+        Matcher mainTableMatcher = mainTablePattern.matcher(sqlExpression);
+        Matcher constraintMatcher = constraintPattern.matcher(sqlExpression);
+        Matcher columnMatcher = columnPattern.matcher(sqlExpression);
+        Matcher tableMatcher = tablePattern.matcher(sqlExpression);
+
+        // Extract the matched elements
+        String tableName = null;
+        String constraintName = null;
+        String columnName = null;
+        String referencedTable = null;
+        String referencedColumn = null;
+
+        if (mainTableMatcher.find()) {
+            tableName = mainTableMatcher.group(1);
+        }
+        if (constraintMatcher.find()) {
+            constraintName = constraintMatcher.group(1);
+        }
+        if (columnMatcher.find()) {
+            columnName = columnMatcher.group(1);
+        }
+        if (tableMatcher.find()) {
+            referencedTable = tableMatcher.group(1);
+            referencedColumn = tableMatcher.group(2);
+        }
+
+        // Print the extracted information
+        Database database = databaseRepository.findDatabaseByName(databaseName);
+        Table tableData = database.getTable(tableName);
+        tableData.addForeignKey(columnName, referencedTable, referencedColumn);
+        this.databaseRepository.save(database);
+
+        return tableData;
+    }
 
     public Table handleSelectStatement(Statement statement, String databaseName) {
         Select selectStatement = (Select) statement;

@@ -19,9 +19,11 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.alter.Alter;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -41,6 +43,27 @@ public class QueryController {
         this.databaseService = databaseService;
         this.tableService = tableService;
         this.queryService = queryService;
+    }
+
+    public static String extractConstraintName(Expression expression) {
+        // Assuming expression is of type ForeignKeyIndex
+        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
+        return foreignKeyIndex.getIndexSpec().toString();
+    }
+
+    public static String extractColumnName(Expression expression) {
+        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
+        return foreignKeyIndex.getColumnsNames().get(0); // Assuming there is only one column in the foreign key
+    }
+
+    public static String extractReferencedTableName(Expression expression) {
+        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
+        return foreignKeyIndex.getTable().getName();
+    }
+
+    public static String extractReferencedColumnName(Expression expression) {
+        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
+        return foreignKeyIndex.getReferencedColumnNames().get(0); // Assuming there is only one referenced column
     }
 
     @PostMapping("/parse-sql")
@@ -80,6 +103,10 @@ public class QueryController {
 
                 tableService.addIndexedColumn(databaseName, tableName, columnName);
             }
+            if (statement instanceof Alter) {
+                Table tableData = this.queryService.handleAlterStatement(statement, databaseName);
+                return ResponseEntity.ok().body(tableData);
+            }
             if (statement instanceof Select) {
                 Table tableData = queryService.handleSelectStatement(statement, databaseName);
                 return ResponseEntity.ok().body(tableData);
@@ -114,7 +141,9 @@ public class QueryController {
                 return ResponseEntity.ok(query);
             }
 
-        } catch (JSQLParserException e) {
+        } catch (
+
+        JSQLParserException e) {
             e.printStackTrace();
         }
         return ResponseEntity.ok(query);

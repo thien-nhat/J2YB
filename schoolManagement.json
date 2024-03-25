@@ -1,54 +1,6 @@
 {
   "databaseName": "schoolManagement",
   "tables": {
-    "avatars": {
-      "columns": [
-        {
-          "name": "id",
-          "dataType": "int",
-          "isPrimaryKey": true,
-          "isIndex": false,
-          "defaultValue": "NULL"
-        },
-        {
-          "name": "PersonID",
-          "dataType": "int",
-          "isPrimaryKey": true,
-          "isIndex": false,
-          "defaultValue": "NULL"
-        },
-        {
-          "name": "Url",
-          "dataType": "varchar (255)",
-          "isPrimaryKey": false,
-          "isIndex": false,
-          "defaultValue": "NULL"
-        }
-      ],
-      "rows": [
-        {
-          "values": [
-            1.0,
-            1.0,
-            "https://th.bing.com/th/id/OIP._yyYIyMLvk6F69t0umqPEgHaJP?rs=1&pid=ImgDetMain"
-          ]
-        },
-        {
-          "values": [
-            2.0,
-            1.0,
-            "https://i.pinimg.com/originals/ce/f9/19/cef9192adbf337fe6f5f8eab118185fe.jpg"
-          ]
-        },
-        {
-          "values": [
-            2.0,
-            2.0,
-            "https://th.bing.com/th/id/OIP.9i8Vqa8U4_wufuOtpFPgtgAAAA?w=417&h=626&rs=1&pid=ImgDetMain"
-          ]
-        }
-      ]
-    },
     "students": {
       "columns": [
         {
@@ -56,21 +8,24 @@
           "dataType": "int",
           "isPrimaryKey": true,
           "isIndex": false,
-          "defaultValue": ""
+          "defaultValue": "",
+          "isForeignKey": false
         },
         {
           "name": "name",
           "dataType": "string",
           "isPrimaryKey": false,
           "isIndex": false,
-          "defaultValue": "Anonymous"
+          "defaultValue": "Anonymous",
+          "isForeignKey": false
         },
         {
           "name": "age",
           "dataType": "int",
           "isPrimaryKey": false,
           "isIndex": true,
-          "defaultValue": ""
+          "defaultValue": "",
+          "isForeignKey": false
         }
       ],
       "rows": [
@@ -114,6 +69,59 @@
             5.0,
             "Stavanger",
             60.0
+          ]
+        }
+      ]
+    },
+    "avatars": {
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "PersonID",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": true,
+          "referencedTableName": "students",
+          "referencedColumnName": "id"
+        },
+        {
+          "name": "Url",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        }
+      ],
+      "rows": [
+        {
+          "values": [
+            1.0,
+            1.0,
+            "https://th.bing.com/th/id/OIP._yyYIyMLvk6F69t0umqPEgHaJP?rs\u003d1\u0026pid\u003dImgDetMain"
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            1.0,
+            "https://i.pinimg.com/originals/ce/f9/19/cef9192adbf337fe6f5f8eab118185fe.jpg"
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            2.0,
+            "https://th.bing.com/th/id/OIP.9i8Vqa8U4_wufuOtpFPgtgAAAA?w\u003d417\u0026h\u003d626\u0026rs\u003d1\u0026pid\u003dImgDetMain"
           ]
         }
       ]
