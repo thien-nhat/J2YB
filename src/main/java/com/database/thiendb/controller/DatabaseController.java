@@ -1,8 +1,13 @@
 package com.database.thiendb.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.Service.DatabaseService;
 
 @RestController
@@ -14,8 +19,15 @@ public class DatabaseController {
         this.databaseService = databaseService;
     }
 
-    // Get all database
+    // Get all databases
+    @GetMapping("/databases")
+    public List<Database> getAllDatabases() {
+        return databaseService.getAllDatabases();
+    }
 
-    // Get database
-
+    // Get database by ID
+    @GetMapping("/databases/{name}")
+    public Database getDatabaseByName(@PathVariable("name") String name) {
+        return databaseService.getDatabaseByName(name);
+    }
 }

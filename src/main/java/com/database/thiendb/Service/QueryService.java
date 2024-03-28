@@ -33,13 +33,11 @@ public class QueryService {
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
     private final RowService rowService;
-    private final SharedFunction sharedFunction;
 
     public QueryService(DatabaseRepository databaseRepository, TableService tableService, RowService rowService) {
         this.databaseRepository = databaseRepository;
         this.tableService = tableService;
         this.rowService = rowService;
-        this.sharedFunction = new SharedFunction();
     }
 
     public Row findRowByCondition(Table table, String columnName, Object value) {
@@ -53,7 +51,7 @@ public class QueryService {
                 Object columnValue = row.getValues()[columnIndex];
                 // System.out.println(columnValue);
                 // Check if the column value matches the given value
-                if (sharedFunction.compareValues(columnValue, value, "=")) {
+                if (SharedFunction.compareValues(columnValue, value, "=")) {
                     // Return the row if the condition is met
                     return row;
                 }
@@ -97,7 +95,7 @@ public class QueryService {
             int columnIndex = table.getColumnIndex(updateColumnName);
             if (columnIndex != -1) {
                 // Evaluate the update expression and set the new value
-                Object newValue = sharedFunction.parseValue(updateExpression.toString());
+                Object newValue = SharedFunction.parseValue(updateExpression.toString());
                 rowToUpdate.getValues()[columnIndex] = newValue;
             }
         }
@@ -120,18 +118,18 @@ public class QueryService {
             String operator = binaryExpression.getStringExpression();
 
             String columnName = leftExpression.toString();
-            Object value = sharedFunction.parseValue(rightExpression.toString());
+            Object value = SharedFunction.parseValue(rightExpression.toString());
             ArrayList<Row> rows = table.getRows();
             // Perform comparison based on the operator, if indexes so use another find
 
             if (table.getColumnByName(columnName).isIndex() && operator == "=") {
-                filteredRows.add(sharedFunction.findRowByIndexedColumn(table, columnName, value));
+                filteredRows.add(SharedFunction.findRowByIndexedColumn(table, columnName, value));
             } else {
                 for (Row row : rows) {
                     int columnIndex = table.getColumnIndex(columnName);
                     if (columnIndex != -1) {
                         Object columnValue = row.getValues()[columnIndex];
-                        if (sharedFunction.compareValues(columnValue, value, operator)) {
+                        if (SharedFunction.compareValues(columnValue, value, operator)) {
                             filteredRows.add(row);
                         }
                     }
@@ -284,7 +282,7 @@ public class QueryService {
         Object[] values = new Object[valueStrings.length];
         for (int i = 0; i < valueStrings.length; i++) {
             String trimmedValue = valueStrings[i].trim();
-            values[i] = sharedFunction.parseValue(trimmedValue);
+            values[i] = SharedFunction.parseValue(trimmedValue);
         }
         Row rowRequest = new Row(values);
         this.rowService.addRow(databaseName, tableName, rowRequest);
@@ -298,7 +296,7 @@ public class QueryService {
         String condition = where.toString();
         String[] parts = condition.split("="); // Split the condition string into parts
         String columnName = parts[0].trim(); // Extract the column name
-        Object value = sharedFunction.parseValue(parts[1].trim());
+        Object value = SharedFunction.parseValue(parts[1].trim());
 
         // Gọi phương thức để thực thi truy vấn cập nhật
         updateRowByCondition(databaseName, tableName, columnName, value, updates);

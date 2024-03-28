@@ -1,5 +1,7 @@
 package com.database.thiendb.Service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,15 @@ public class DatabaseService {
 
     public void setDatabaseRepository(DatabaseRepository databaseRepository) {
         this.databaseRepository = databaseRepository;
+    }
+
+
+    public List<Database> getAllDatabases() {
+        return databaseRepository.findAll();
+    }
+
+    public Database getDatabaseByName(String name) {
+        return databaseRepository.findDatabaseByName(name);
     }
 
     public void addDatabase(String databaseName) {

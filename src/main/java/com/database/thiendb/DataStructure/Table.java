@@ -1,12 +1,12 @@
 package com.database.thiendb.DataStructure;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import com.database.thiendb.Exception.InvalidRequestException;
 
 import net.sf.jsqlparser.statement.select.SelectItem;
+import com.database.thiendb.Utils.SharedFunction;
+import com.database.thiendb.Exception.InvalidRequestException;
 
 public class Table {
     private ArrayList<Column> columns;
@@ -43,24 +43,24 @@ public class Table {
         }
         return null; // Return null if column not found
     }
-
-    // Sắp xếp lại các hàng theo một cột
-    private void sortRowsByColumn(String columnName) {
-        Collections.sort(rows, (row1, row2) -> {
-            Object value1 = row1.getValueByColumn(columnName, columns);
-            Object value2 = row2.getValueByColumn(columnName, columns);
-            if (value1 instanceof Comparable && value2 instanceof Comparable) {
-                return ((Comparable) value1).compareTo(value2);
-            }
-            return 0;
-        });
-    }
+    
+    // // Sắp xếp lại các hàng theo một cột
+    // private void sortRowsByColumn(String columnName) {
+    //     Collections.sort(rows, (row1, row2) -> {
+    //         Object value1 = row1.getValueByColumn(columnName, columns);
+    //         Object value2 = row2.getValueByColumn(columnName, columns);
+    //         if (value1 instanceof Comparable && value2 instanceof Comparable) {
+    //             return ((Comparable) value1).compareTo(value2);
+    //         }
+    //         return 0;
+    //     });
+    // }
 
     // Thêm cột được index và sắp xếp lại các hàng
     public void addIndexedColumn(String columnName) {
         Column column = getColumnByName(columnName);
         column.setIndex(true);
-        sortRowsByColumn(columnName);
+        SharedFunction.sortRowsByColumn(rows, columnName, columns);
     }
 
     // Kiểm tra xem một cột có phải là cột index không

@@ -1,13 +1,14 @@
 package com.database.thiendb.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.database.thiendb.DataStructure.Column;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
 
 public class SharedFunction {
-    public Object parseValue(String trimmedValue) {
+    static public Object parseValue(String trimmedValue) {
         if (trimmedValue.startsWith("'") && trimmedValue.endsWith("'")) {
             // Remove single quotes for string literals
             return trimmedValue.substring(1, trimmedValue.length() - 1);
@@ -26,7 +27,7 @@ public class SharedFunction {
         }
     }
 
-    public boolean compareValues(Object columnValue, Object value, String operator) {
+    static public boolean compareValues(Object columnValue, Object value, String operator) {
         if (columnValue instanceof Number && value instanceof Number) {
             double columnDouble = ((Number) columnValue).doubleValue();
             double valueDouble = ((Number) value).doubleValue();
@@ -49,9 +50,20 @@ public class SharedFunction {
         }
     }
 
+    // Sắp xếp lại các hàng theo một cột
+    static public void sortRowsByColumn( ArrayList<Row> rows , String columnName, ArrayList<Column> columns) {
+        Collections.sort(rows, (row1, row2) -> {
+            Object value1 = row1.getValueByColumn(columnName, columns);
+            Object value2 = row2.getValueByColumn(columnName, columns);
+            if (value1 instanceof Comparable && value2 instanceof Comparable) {
+                return ((Comparable) value1).compareTo(value2);
+            }
+            return 0;
+        });
+    }
     // FUNCTION TO SEARCH FOR A ROW
 
-    public Row findRowByIndexedColumn(Table table, String columnName, Object value) {
+    static public Row findRowByIndexedColumn(Table table, String columnName, Object value) {
         ArrayList<Row> rows = table.getRows();
         ArrayList<Column> columns = table.getColumns();
 

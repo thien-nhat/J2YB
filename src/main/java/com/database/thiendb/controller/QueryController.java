@@ -1,7 +1,10 @@
 package com.database.thiendb.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +26,6 @@ import net.sf.jsqlparser.statement.alter.Alter;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -45,26 +47,26 @@ public class QueryController {
         this.queryService = queryService;
     }
 
-    public static String extractConstraintName(Expression expression) {
-        // Assuming expression is of type ForeignKeyIndex
-        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
-        return foreignKeyIndex.getIndexSpec().toString();
+    public List<String> extractForeignKeyDetails(String foreignKeyExpression) {
+        List<String> details = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\((.*?)\\)");
+        Matcher matcher = pattern.matcher(foreignKeyExpression);
+        while (matcher.find()) {
+            details.add(matcher.group(1));
+        }
+        pattern = Pattern.compile("REFERENCES (.*?)\\(");
+        matcher = pattern.matcher(foreignKeyExpression);
+        if (matcher.find()) {
+            details.add(matcher.group(1).trim());
+        }
+        return details;
     }
 
-    public static String extractColumnName(Expression expression) {
-        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
-        return foreignKeyIndex.getColumnsNames().get(0); // Assuming there is only one column in the foreign key
-    }
-
-    public static String extractReferencedTableName(Expression expression) {
-        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
-        return foreignKeyIndex.getTable().getName();
-    }
-
-    public static String extractReferencedColumnName(Expression expression) {
-        ForeignKeyIndex foreignKeyIndex = (ForeignKeyIndex) expression;
-        return foreignKeyIndex.getReferencedColumnNames().get(0); // Assuming there is only one referenced column
-    }
+    // String foreignKeyExpression = "FOREIGN KEY (column_name) REFERENCES
+    // other_table(other_column)";
+    // List<String> details = extractForeignKeyDetails(foreignKeyExpression);
+    // System.out.println(details); // Outputs: [column_name, other_table,
+    // other_column]
 
     @PostMapping("/parse-sql")
     public ResponseEntity<Object> parseDatabaseSQL(@RequestBody String query) {

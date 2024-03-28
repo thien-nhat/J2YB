@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -33,7 +35,21 @@ public class DatabaseRepository {
         this.database = database;
     }
 
-    // Get database
+    public List<Database> findAll() {
+        List<Database> databases = new ArrayList<>();
+        File folder = new File("./"); 
+        for (File file : folder.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".json")) {
+                Database database = findDatabaseByName(file.getName().replace(".json", ""));
+                if (database != null) {
+                    databases.add(database);
+                }
+            }
+        }
+        return databases;
+    }
+
+    // Get database by name
     public Database findDatabaseByName(String databaseName) {
         String fileName = databaseName + ".json";
         File file = new File(fileName);
@@ -72,7 +88,6 @@ public class DatabaseRepository {
         }
         return null;
     }
-
 
     // Save
     public void save(Database database) {
