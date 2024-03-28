@@ -18,6 +18,9 @@ import com.database.thiendb.Repository.DatabaseRepository;
 import com.database.thiendb.Utils.SharedFunction;
 
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -30,6 +33,11 @@ import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 
 @Service
 public class QueryService {
+    private static final Pattern MAIN_TABLE_PATTERN = Pattern.compile("ALTER\\s+TABLE\\s+(\\S+)");
+    private static final Pattern CONSTRAINT_PATTERN = Pattern.compile("ADD\\s+CONSTRAINT\\s+(\\S+)\\s+FOREIGN\\s+KEY");
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("\\((\\S+)\\)");
+    private static final Pattern REF_TABLE_PATTERN = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
+
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
     private final RowService rowService;
@@ -45,11 +53,9 @@ public class QueryService {
         for (Row row : table.getRows()) {
             // Get the index of the column with the given name
             int columnIndex = table.getColumnIndex(columnName);
-            // System.out.println(columnIndex);
             if (columnIndex != -1) {
                 // Retrieve the value of the column from the row
                 Object columnValue = row.getValues()[columnIndex];
-                // System.out.println(columnValue);
                 // Check if the column value matches the given value
                 if (SharedFunction.compareValues(columnValue, value, "=")) {
                     // Return the row if the condition is met
@@ -60,8 +66,6 @@ public class QueryService {
         // Return null if no row matches the condition
         return null;
     }
-
-    // HANDLE ROW
 
     private void updateRowByCondition(String databaseName, String tableName, String columnName, Object value,
             HashMap<String, Expression> updates) {
@@ -99,13 +103,10 @@ public class QueryService {
                 rowToUpdate.getValues()[columnIndex] = newValue;
             }
         }
-        System.out.println("Row updated successfully.");
 
         // Save the changes to the database
         this.databaseRepository.save(database);
     }
-
-    // HANDLE CONDITION
 
     private void applyWhereClause(Table table, Expression whereExpression) {
         ArrayList<Row> filteredRows = new ArrayList<>();
@@ -181,45 +182,125 @@ public class QueryService {
 
     }
 
-    // HANDLE QUERY
+    private Table getTableOrThrow(String databaseName, String tableName) {
+        Table table = this.tableService.getTable(databaseName, tableName);
+        if (table == null) {
+            throw new ObjectNotFoundException("Table not found: " + tableName);
+        }
+        return table;
+    }
+
+    // HANDLE ALTER STATEMENT
+    private String extractTableName(String sqlExpression) {
+        Pattern mainTablePattern = MAIN_TABLE_PATTERN;
+        Matcher mainTableMatcher = mainTablePattern.matcher(sqlExpression);
+        if (mainTableMatcher.find()) {
+            return mainTableMatcher.group(1);
+        }
+        return null;
+    }
+
+    private String extractConstraintName(String sqlExpression) {
+        Pattern constraintPattern = CONSTRAINT_PATTERN;
+        Matcher constraintMatcher = constraintPattern.matcher(sqlExpression);
+        if (constraintMatcher.find()) {
+            return constraintMatcher.group(1);
+        }
+        return null;
+    }
+
+    private String extractColumnName(String sqlExpression) {
+        Pattern columnPattern = COLUMN_PATTERN;
+        Matcher columnMatcher = columnPattern.matcher(sqlExpression);
+        if (columnMatcher.find()) {
+            return columnMatcher.group(1);
+        }
+        return null;
+    }
+
+    private String extractReferencedTable(String sqlExpression) {
+        Pattern refTablePattern = REF_TABLE_PATTERN;
+        Matcher refTableMatcher = refTablePattern.matcher(sqlExpression);
+        if (refTableMatcher.find()) {
+            return refTableMatcher.group(1);
+        }
+        return null;
+    }
+
+    private String extractReferencedColumn(String sqlExpression) {
+        Pattern refTablePattern = REF_TABLE_PATTERN;
+        Matcher refTableMatcher = refTablePattern.matcher(sqlExpression);
+        if (refTableMatcher.find()) {
+            return refTableMatcher.group(2);
+        }
+        return null;
+    }
+
     public Table handleAlterStatement(Statement statement, String databaseName) {
         String sqlExpression = statement.toString();
-        Pattern mainTablePattern = Pattern.compile("ALTER\\s+TABLE\\s+(\\S+)");
-        Pattern constraintPattern = Pattern.compile("ADD\\s+CONSTRAINT\\s+(\\S+)\\s+FOREIGN\\s+KEY");
-        Pattern columnPattern = Pattern.compile("\\((\\S+)\\)");
-        Pattern tablePattern = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
-
-        // Match the regular expressions against the SQL expression
-        Matcher mainTableMatcher = mainTablePattern.matcher(sqlExpression);
-        Matcher constraintMatcher = constraintPattern.matcher(sqlExpression);
-        Matcher columnMatcher = columnPattern.matcher(sqlExpression);
-        Matcher tableMatcher = tablePattern.matcher(sqlExpression);
-
-        // Extract the matched elements
-        String tableName = null;
-        String constraintName = null;
-        String columnName = null;
-        String referencedTable = null;
-        String referencedColumn = null;
-
-        if (mainTableMatcher.find()) {
-            tableName = mainTableMatcher.group(1);
-        }
-        if (constraintMatcher.find()) {
-            constraintName = constraintMatcher.group(1);
-        }
-        if (columnMatcher.find()) {
-            columnName = columnMatcher.group(1);
-        }
-        if (tableMatcher.find()) {
-            referencedTable = tableMatcher.group(1);
-            referencedColumn = tableMatcher.group(2);
-        }
+        String tableName = extractTableName(sqlExpression);
+        String constraintName = extractConstraintName(sqlExpression);
+        String columnName = extractColumnName(sqlExpression);
+        String referencedTable = extractReferencedTable(sqlExpression);
+        String referencedColumn = extractReferencedColumn(sqlExpression);
 
         // Print the extracted information
         Database database = databaseRepository.findDatabaseByName(databaseName);
         Table tableData = database.getTable(tableName);
         tableData.addForeignKey(columnName, referencedTable, referencedColumn);
+        this.databaseRepository.save(database);
+
+        return tableData;
+    }
+
+    private List<String> extractPrimaryKeyDetails(String primaryKeyExpression) {
+        List<String> details = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\((.*?)\\)");
+        Matcher matcher = pattern.matcher(primaryKeyExpression);
+        while (matcher.find()) {
+            details.add(matcher.group(1));
+        }
+        return details;
+    }
+
+    private List<String> extractForeignKeyDetails(String foreignKeyExpression) {
+        List<String> details = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\((.*?)\\)");
+        Matcher matcher = pattern.matcher(foreignKeyExpression);
+        while (matcher.find()) {
+            details.add(matcher.group(1));
+        }
+        pattern = Pattern.compile("REFERENCES (.*?)\\(");
+        matcher = pattern.matcher(foreignKeyExpression);
+        if (matcher.find()) {
+            details.add(matcher.group(1).trim());
+        }
+        return details;
+    }
+
+    public Table handleCreateTable(Statement statement, String databaseName) {
+        CreateTable createTableStatement = (CreateTable) statement;
+
+        String tableName = createTableStatement.getTable().getName();
+        List<ColumnDefinition> columnDefinitions = createTableStatement.getColumnDefinitions();
+
+        this.tableService.addTable(databaseName, tableName, columnDefinitions);
+        // Extract foreign key details
+
+        Database database = databaseRepository.findDatabaseByName(databaseName);
+        Table tableData = database.getTable(tableName);
+
+        for (Index index : createTableStatement.getIndexes()) {
+            if (index.getType().equals("FOREIGN KEY")) {
+                List<String> foreignKeyDetails = extractForeignKeyDetails(index.toString());
+                String[] foreignKeyArray = foreignKeyDetails.toArray(new String[0]);
+                tableData.addForeignKey(foreignKeyArray[0], foreignKeyArray[2], foreignKeyArray[1]);
+            } else if (index.getType().equals("PRIMARY KEY")) {
+                List<String> primaryKeyDetails = extractPrimaryKeyDetails(index.toString());
+                String primaryKey = primaryKeyDetails.get(0);
+                tableData.setPrimaryKey(primaryKey);
+            }
+        }
         this.databaseRepository.save(database);
 
         return tableData;
@@ -233,10 +314,7 @@ public class QueryService {
         String tableName = plainSelect.getFromItem().toString();
 
         // Get the table data
-        Table tableData = this.tableService.getTable(databaseName, tableName);
-        if (tableData == null) {
-            throw new ObjectNotFoundException("Table not found: " + tableName);
-        }
+        Table tableData = getTableOrThrow(databaseName, tableName);
 
         // Handle WHERE clause conditions to filter rows
         Expression whereExpression = plainSelect.getWhere();
@@ -247,17 +325,13 @@ public class QueryService {
         // Handle JOIN
         List<Join> joins = plainSelect.getJoins();
         if (joins != null) {
-            for (Join join : joins) {
+            joins.forEach(join -> {
                 String joinTableName = join.getRightItem().toString();
-                Table joinTableData = this.tableService.getTable(databaseName, joinTableName);
-                if (joinTableData == null) {
-                    throw new ObjectNotFoundException("Table not found: " + joinTableName);
-                }
-                // INNER JOIN
+                Table joinTableData = getTableOrThrow(databaseName, joinTableName);
                 applyInnerJoin(tableData, joinTableData, join.getOnExpression());
-            }
+            });
         }
-        System.out.println("Handle SELECT select");
+
         // Handle SELECT items
         List<SelectItem> selectItems = plainSelect.getSelectItems();
         if (selectItems.size() == 1 && selectItems.get(0).toString().equals("*")) {

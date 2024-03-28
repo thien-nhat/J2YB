@@ -47,20 +47,7 @@ public class QueryController {
         this.queryService = queryService;
     }
 
-    public List<String> extractForeignKeyDetails(String foreignKeyExpression) {
-        List<String> details = new ArrayList<>();
-        Pattern pattern = Pattern.compile("\\((.*?)\\)");
-        Matcher matcher = pattern.matcher(foreignKeyExpression);
-        while (matcher.find()) {
-            details.add(matcher.group(1));
-        }
-        pattern = Pattern.compile("REFERENCES (.*?)\\(");
-        matcher = pattern.matcher(foreignKeyExpression);
-        if (matcher.find()) {
-            details.add(matcher.group(1).trim());
-        }
-        return details;
-    }
+   
 
     // String foreignKeyExpression = "FOREIGN KEY (column_name) REFERENCES
     // other_table(other_column)";
@@ -87,13 +74,8 @@ public class QueryController {
             // Parse câu truy vấn SQL
             Statement statement = CCJSqlParserUtil.parse(query);
             if (statement instanceof CreateTable) {
-                CreateTable createTableStatement = (CreateTable) statement;
-                System.out.println(createTableStatement);
-                String tableName = createTableStatement.getTable().getName();
-                List<ColumnDefinition> columnDefinitions = createTableStatement.getColumnDefinitions();
-
-                this.tableService.addTable(databaseName, tableName, columnDefinitions);
-
+                Table tableData = this.queryService.handleCreateTable(statement, databaseName);
+                return ResponseEntity.ok().body(tableData);
             }
             if (statement instanceof CreateIndex) {
                 CreateIndex createIndex = (CreateIndex) statement;
@@ -101,7 +83,6 @@ public class QueryController {
                 String indexName = createIndex.getIndex().getName();
                 String tableName = createIndex.getTable().getName();
                 String columnName = index.getColumnsNames().get(0);
-                System.out.println("Index Name: " + indexName);
 
                 tableService.addIndexedColumn(databaseName, tableName, columnName);
             }

@@ -38,7 +38,7 @@ public class TableService {
     }
 
     // Add table and columns
-    public void addTable(String databaseName, String tableName, List<ColumnDefinition> columnDefinitions) {
+    public Table addTable(String databaseName, String tableName, List<ColumnDefinition> columnDefinitions) {
         // TODO
         Database database = databaseRepository.findDatabaseByName(databaseName);
         database.createTable(tableName);
@@ -52,6 +52,7 @@ public class TableService {
             newTable.addColumn(column);
         }
         this.databaseRepository.save(database);
+        return newTable;
     }
 
     public void updateTableName(String databaseName, String tableName, String newTableName) {

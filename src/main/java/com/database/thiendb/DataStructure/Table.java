@@ -43,18 +43,6 @@ public class Table {
         }
         return null; // Return null if column not found
     }
-    
-    // // Sắp xếp lại các hàng theo một cột
-    // private void sortRowsByColumn(String columnName) {
-    //     Collections.sort(rows, (row1, row2) -> {
-    //         Object value1 = row1.getValueByColumn(columnName, columns);
-    //         Object value2 = row2.getValueByColumn(columnName, columns);
-    //         if (value1 instanceof Comparable && value2 instanceof Comparable) {
-    //             return ((Comparable) value1).compareTo(value2);
-    //         }
-    //         return 0;
-    //     });
-    // }
 
     // Thêm cột được index và sắp xếp lại các hàng
     public void addIndexedColumn(String columnName) {
@@ -134,6 +122,17 @@ public class Table {
             }
         }
         return true;
+    }
+    // Method to set primary key constraint
+    public void setPrimaryKey(String columnName) {
+        for (Column column : columns) {
+            if (column.getName().equals(columnName)) {
+                // Set foreign key properties for the column
+                column.setPrimaryKey(true);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Column not found: " + columnName);
     }
 
     // Method to add foreign key constraint

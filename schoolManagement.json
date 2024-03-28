@@ -1,6 +1,37 @@
 {
   "databaseName": "schoolManagement",
   "tables": {
+    "Orders": {
+      "columns": [
+        {
+          "name": "OrderID",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "OrderNumber",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "PersonID",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": true,
+          "referencedTableName": "students",
+          "referencedColumnName": "id"
+        }
+      ],
+      "rows": []
+    },
     "students": {
       "columns": [
         {
