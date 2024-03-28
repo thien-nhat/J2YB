@@ -18,11 +18,9 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 public class TableService {
     @Autowired
     private DatabaseRepository databaseRepository;
-    private final SharedFunction sharedFunction;
 
     public TableService(DatabaseRepository databaseRepository) {
         this.databaseRepository = databaseRepository;
-        this.sharedFunction = new SharedFunction();
     }
 
     public Table getTable(String databaseName, String tableName) {
@@ -82,6 +80,6 @@ public class TableService {
         // TODO
         Database database = databaseRepository.findDatabaseByName(databaseName);
         Table table = database.getTable(tableName);
-        return sharedFunction.findRowByIndexedColumn(table, columnName, value);
+        return SharedFunction.findRowByIndexedColumn(table, columnName, value);
     }
 }
