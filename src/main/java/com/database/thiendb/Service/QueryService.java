@@ -37,6 +37,7 @@ public class QueryService {
     private static final Pattern CONSTRAINT_PATTERN = Pattern.compile("ADD\\s+CONSTRAINT\\s+(\\S+)\\s+FOREIGN\\s+KEY");
     private static final Pattern COLUMN_PATTERN = Pattern.compile("\\((\\S+)\\)");
     private static final Pattern REF_TABLE_PATTERN = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
+    private static final Pattern DROP_COLUMN_PATTERN = Pattern.compile("ALTER TABLE\\s+(?:\\w+)\\s+DROP COLUMN\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
 
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
@@ -236,20 +237,32 @@ public class QueryService {
         return null;
     }
 
+    private String extractDropColumnName(String sqlExpression) {
+        Matcher matcher = DROP_COLUMN_PATTERN.matcher(sqlExpression);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
     public Table handleAlterStatement(Statement statement, String databaseName) {
         String sqlExpression = statement.toString();
         String tableName = extractTableName(sqlExpression);
-        String constraintName = extractConstraintName(sqlExpression);
-        String columnName = extractColumnName(sqlExpression);
-        String referencedTable = extractReferencedTable(sqlExpression);
-        String referencedColumn = extractReferencedColumn(sqlExpression);
-
-        // Print the extracted information
         Database database = databaseRepository.findDatabaseByName(databaseName);
         Table tableData = database.getTable(tableName);
-        tableData.addForeignKey(columnName, referencedTable, referencedColumn);
-        this.databaseRepository.save(database);
-
+        if (sqlExpression.toUpperCase().contains("DROP COLUMN")) {
+            // Handle drop column
+            String columnName = extractDropColumnName(sqlExpression);
+            System.out.println(columnName);
+            tableData = this.tableService.deleteColumn(databaseName, tableName, columnName);
+        } else {
+            // Handle add foreign key
+            String constraintName = extractConstraintName(sqlExpression);
+            String columnName = extractColumnName(sqlExpression);
+            String referencedTable = extractReferencedTable(sqlExpression);
+            String referencedColumn = extractReferencedColumn(sqlExpression);
+            tableData.addForeignKey(columnName, referencedTable, referencedColumn);
+            this.databaseRepository.save(database);
+        }
         return tableData;
     }
 

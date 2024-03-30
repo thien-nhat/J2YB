@@ -1,10 +1,7 @@
 package com.database.thiendb.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +21,6 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.alter.Alter;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -46,14 +42,6 @@ public class QueryController {
         this.tableService = tableService;
         this.queryService = queryService;
     }
-
-   
-
-    // String foreignKeyExpression = "FOREIGN KEY (column_name) REFERENCES
-    // other_table(other_column)";
-    // List<String> details = extractForeignKeyDetails(foreignKeyExpression);
-    // System.out.println(details); // Outputs: [column_name, other_table,
-    // other_column]
 
     @PostMapping("/parse-sql")
     public ResponseEntity<Object> parseDatabaseSQL(@RequestBody String query) {

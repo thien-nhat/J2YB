@@ -7,6 +7,7 @@ import java.util.List;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import com.database.thiendb.Utils.SharedFunction;
 import com.database.thiendb.Exception.InvalidRequestException;
+import com.database.thiendb.Exception.ObjectNotFoundException;
 
 public class Table {
     private ArrayList<Column> columns;
@@ -118,7 +119,6 @@ public class Table {
         for (int i = 0; i < values.length; i++) {
             if (!columns.get(i).isValidValue(values[i])) {
                 throw new InvalidRequestException("Invalid value for column " + columns.get(i).getName());
-                // return false;
             }
         }
         return true;
@@ -132,7 +132,7 @@ public class Table {
                 return;
             }
         }
-        throw new IllegalArgumentException("Column not found: " + columnName);
+        throw new ObjectNotFoundException("Column not found: " + columnName);
     }
 
     // Method to add foreign key constraint
@@ -146,7 +146,7 @@ public class Table {
                 return;
             }
         }
-        throw new IllegalArgumentException("Column not found: " + columnName);
+        throw new ObjectNotFoundException("Column not found: " + columnName);
     }
 
     public Row getRow(Integer rowId) {
