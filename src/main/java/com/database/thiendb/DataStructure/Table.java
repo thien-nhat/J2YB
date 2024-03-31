@@ -43,7 +43,15 @@ public class Table {
         }
         return null; // Return null if column not found
     }
-
+    // Get primary key column
+    public Column getPrimaryKeyColumn() {
+        for (Column column : columns) {
+            if (column.isPrimaryKey()) {
+                return column;
+            }
+        }
+        return null;
+    }
     // Thêm cột được index và sắp xếp lại các hàng
     public void addIndexedColumn(String columnName) {
         Column column = getColumnByName(columnName);

@@ -13,6 +13,7 @@ import com.database.thiendb.DataStructure.Column;
 import com.database.thiendb.DataStructure.Database;
 import com.database.thiendb.DataStructure.Row;
 import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Exception.InvalidRequestException;
 import com.database.thiendb.Exception.ObjectNotFoundException;
 import com.database.thiendb.Repository.DatabaseRepository;
 import com.database.thiendb.Utils.SharedFunction;
@@ -37,7 +38,8 @@ public class QueryService {
     private static final Pattern CONSTRAINT_PATTERN = Pattern.compile("ADD\\s+CONSTRAINT\\s+(\\S+)\\s+FOREIGN\\s+KEY");
     private static final Pattern COLUMN_PATTERN = Pattern.compile("\\((\\S+)\\)");
     private static final Pattern REF_TABLE_PATTERN = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
-    private static final Pattern DROP_COLUMN_PATTERN = Pattern.compile("ALTER TABLE\\s+(?:\\w+)\\s+DROP COLUMN\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DROP_COLUMN_PATTERN = Pattern
+            .compile("ALTER TABLE\\s+(?:\\w+)\\s+DROP COLUMN\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
 
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
@@ -245,6 +247,7 @@ public class QueryService {
         }
         return null;
     }
+
     public Table handleAlterStatement(Statement statement, String databaseName) {
         String sqlExpression = statement.toString();
         String tableName = extractTableName(sqlExpression);
@@ -365,13 +368,35 @@ public class QueryService {
         String valuesString = valuesStatement.toString();
         // Remove parentheses and split by comma
         String[] valueStrings = valuesString.substring(1, valuesString.length() - 1).split(",");
-
+        
+        Table table = this.tableService.getTable(databaseName, tableName);
+        
         // Trim each value and remove single quotes if present
         Object[] values = new Object[valueStrings.length];
         for (int i = 0; i < valueStrings.length; i++) {
             String trimmedValue = valueStrings[i].trim();
             values[i] = SharedFunction.parseValue(trimmedValue);
         }
+
+        // Check if the table has a primary key
+        if (table.getPrimaryKeyColumn() != null) {
+            // Get the index of the primary key in the columns list
+            int primaryKeyIndex = table.getColumns().indexOf(table.getPrimaryKeyColumn());
+
+            // If the primary key is included in the insert statement
+            if (primaryKeyIndex != -1) {
+                // Get the value of the primary key in the new row
+                Object newPrimaryKeyValue = values[primaryKeyIndex];
+
+                // Check if this value is unique
+                for (Row row : table.getRows()) {
+                    if (row.equals(primaryKeyIndex, newPrimaryKeyValue)) {
+                        throw new InvalidRequestException("The value of the primary key must be unique.");
+                    }
+                }
+            }
+        }
+        // Add row into the table
         Row rowRequest = new Row(values);
         this.rowService.addRow(databaseName, tableName, rowRequest);
     }

@@ -3,6 +3,8 @@ package com.database.thiendb.DataStructure;
 import java.util.Arrays;
 import java.util.List;
 
+import com.database.thiendb.Utils.SharedFunction;
+
 public class Row {
     private Object[] values;
 
@@ -17,7 +19,11 @@ public class Row {
         return values;
     }
 
-    //
+    public boolean equals(int index, Object otherValue) {
+        Object thisValue = this.values[index];
+        return SharedFunction.compareValues(thisValue, otherValue, "=");
+    }
+
     // Get value by column
     public Object getValueByColumn(String columnName, List<Column> columns) {
         int columnIndex = getColumnIndex(columnName, columns);
