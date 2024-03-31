@@ -101,6 +101,7 @@ public class QueryService {
             if (columnIndex != -1) {
                 // Evaluate the update expression and set the new value
                 Object newValue = SharedFunction.parseValue(updateExpression.toString());
+                table.checkValidValueWithIndex(newValue, columnIndex);
                 rowToUpdate.getValues()[columnIndex] = newValue;
             }
         }

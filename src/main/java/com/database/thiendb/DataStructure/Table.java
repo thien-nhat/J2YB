@@ -3,7 +3,6 @@ package com.database.thiendb.DataStructure;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import net.sf.jsqlparser.statement.select.SelectItem;
 import com.database.thiendb.Utils.SharedFunction;
 import com.database.thiendb.Exception.InvalidRequestException;
@@ -115,7 +114,13 @@ public class Table {
     }
 
     // Check valid of value
-    private boolean checkValidValue(Object[] values) {
+    public void checkValidValueWithIndex(Object value, int index) {
+        if (!columns.get(index).isValidValue(value)) {
+            throw new InvalidRequestException("Invalid value for column " + columns.get(index).getName());
+        }
+    }
+
+    private boolean checkValidValues(Object[] values) {
         for (int i = 0; i < values.length; i++) {
             if (!columns.get(i).isValidValue(values[i])) {
                 throw new InvalidRequestException("Invalid value for column " + columns.get(i).getName());
@@ -123,6 +128,7 @@ public class Table {
         }
         return true;
     }
+
     // Method to set primary key constraint
     public void setPrimaryKey(String columnName) {
         for (Column column : columns) {
@@ -158,7 +164,7 @@ public class Table {
         Object[] values = row.getValues();
         if (values.length == columns.size()) {
 
-            if (checkValidValue(values)) {
+            if (checkValidValues(values)) {
                 rows.add(row);
             } else {
                 return;
@@ -172,7 +178,7 @@ public class Table {
     public void updateRow(Integer index, Row row) {
         Object[] values = row.getValues();
         if (values.length == columns.size()) {
-            if (checkValidValue(values)) {
+            if (checkValidValues(values)) {
                 this.rows.get(index).setValues(values);
             } else {
                 return;
