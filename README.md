@@ -18,7 +18,7 @@ Dưới đây là một số câu lệnh SQL mẫu mà bạn có thể sử dụ
 
 #### Tạo Cơ Sở Dữ Liệu
 Để tạo một cơ sở dữ liệu mới, sử dụng câu lệnh sau:
-*** CREATE DATABASE TenCSDL; ***
+***CREATE DATABASE TenCSDL;***
 
 ### API `/api/parse-sql/{TenCSDL}`
 #### Thay đổi cấu trúc bảng
