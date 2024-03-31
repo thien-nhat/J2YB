@@ -43,6 +43,7 @@ public class Table {
         }
         return null; // Return null if column not found
     }
+
     // Get primary key column
     public Column getPrimaryKeyColumn() {
         for (Column column : columns) {
@@ -52,6 +53,17 @@ public class Table {
         }
         return null;
     }
+
+    // Get foreign key column
+    public Column getForeignKeyColumn() {
+        for (Column column : columns) {
+            if (column.isForeignKey()) {
+                return column;
+            }
+        }
+        return null;
+    }
+
     // Thêm cột được index và sắp xếp lại các hàng
     public void addIndexedColumn(String columnName) {
         Column column = getColumnByName(columnName);
@@ -161,6 +173,26 @@ public class Table {
             }
         }
         throw new ObjectNotFoundException("Column not found: " + columnName);
+    }
+
+    // Check if the value exists in the primary column
+    public boolean isValueExistsInPrimaryKeyColumn(int index, Object value) {
+        for (Row row : rows) {
+            if (SharedFunction.compareValues(row.getValueByColumnIndex(index), value, "=")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Check if the value exists in the referenced column
+    public boolean isValueExistsInReferencedColumn(int index, Object value) {
+        for (Row row : rows) {
+            if (SharedFunction.compareValues(row.getValueByColumnIndex(index), value, "=")){
+                return true;
+            }
+        }
+        return false;
     }
 
     public Row getRow(Integer rowId) {
