@@ -22,6 +22,20 @@ public class Table {
         columns.add(column);
     }
 
+    public void addColumn(String columnName, String columnType) {
+        Column newColumn = new Column(columnName, columnType, false, null, false);
+        columns.add(newColumn);
+        String baseDataType = SharedFunction.getBaseDataType(columnType).trim();
+
+        for (Row row : rows) {
+            if ("int".equalsIgnoreCase(baseDataType)) {
+                row.addValue(0);
+            } else if ("varchar".equalsIgnoreCase(baseDataType)) {
+                row.addValue("");
+            }
+        }
+    }
+
     public ArrayList<Column> getColumns() {
         return columns;
     }

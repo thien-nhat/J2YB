@@ -31,6 +31,8 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class QueryService {
@@ -40,6 +42,8 @@ public class QueryService {
     private static final Pattern REF_TABLE_PATTERN = Pattern.compile("REFERENCES\\s+(\\S+)\\((\\S+)\\)");
     private static final Pattern DROP_COLUMN_PATTERN = Pattern
             .compile("ALTER TABLE\\s+(?:\\w+)\\s+DROP COLUMN\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ADD_COLUMN_NAME = Pattern.compile("ALTER TABLE \\w+\\s+ADD COLUMN (\\w+)");
+    private static final Pattern ADD_COLUMN_TYPE = Pattern.compile("ALTER TABLE \\w+\\s+ADD COLUMN \\w+ (\\w+\\s*\\(\\d+\\))");
 
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
@@ -206,6 +210,22 @@ public class QueryService {
         return null;
     }
 
+    private String extractAddColumnName(String sqlExpression) {
+        Matcher matcher = ADD_COLUMN_NAME.matcher(sqlExpression);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    private String extractAddColumnType(String sqlExpression) {
+        Matcher matcher = ADD_COLUMN_TYPE.matcher(sqlExpression);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
     public Table handleAlterStatement(Statement statement, String databaseName) {
         String sqlExpression = statement.toString();
         String tableName = extractTableName(sqlExpression);
@@ -214,8 +234,13 @@ public class QueryService {
         if (sqlExpression.toUpperCase().contains("DROP COLUMN")) {
             // Handle drop column
             String columnName = extractDropColumnName(sqlExpression);
-            System.out.println(columnName);
             tableData = this.tableService.deleteColumn(databaseName, tableName, columnName);
+        } else if (sqlExpression.toUpperCase().contains("ADD")) {
+            // Handle add column
+            String columnName = extractAddColumnName(sqlExpression);
+            String columnType = extractAddColumnType(sqlExpression);
+            tableData.addColumn(columnName, columnType);
+            this.databaseRepository.save(database);
         } else {
             // Handle add foreign key
             String constraintName = extractConstraintName(sqlExpression);
@@ -432,8 +457,6 @@ public class QueryService {
         String[] parts = condition.split("="); // Split the condition string into parts
         String columnName = parts[0].trim(); // Extract the column name
         Object value = SharedFunction.parseValue(parts[1].trim());
-
-        // validateForeignKeyConstraints(databaseName, tableName, values);
 
         // Gọi phương thức để thực thi truy vấn cập nhật
         updateRowByCondition(databaseName, tableName, columnName, value, updates);

@@ -51,7 +51,7 @@ public class SharedFunction {
     }
 
     // Sắp xếp lại các hàng theo một cột
-    static public void sortRowsByColumn( ArrayList<Row> rows , String columnName, ArrayList<Column> columns) {
+    static public void sortRowsByColumn(ArrayList<Row> rows, String columnName, ArrayList<Column> columns) {
         Collections.sort(rows, (row1, row2) -> {
             Object value1 = row1.getValueByColumn(columnName, columns);
             Object value2 = row2.getValueByColumn(columnName, columns);
@@ -84,5 +84,32 @@ public class SharedFunction {
         }
 
         return null;
+    }
+
+    // Phương thức để lấy loại dữ liệu cơ bản
+    static public String getBaseDataType(String dataType) {
+        int parenIndex = dataType.indexOf("(");
+        if (parenIndex != -1) {
+            return dataType.substring(0, parenIndex);
+        } else {
+            return dataType;
+        }
+    }
+
+    // Phương thức để lấy độ dài tối đa của kiểu dữ liệu
+    static public int getMaxLengthOfDataType(String dataType) {
+        int parenIndex = dataType.indexOf("(");
+        if (parenIndex != -1) {
+            String lengthStr = dataType.substring(parenIndex + 1, dataType.length() - 1);
+            try {
+                return Integer.parseInt(lengthStr);
+            } catch (NumberFormatException e) {
+                // Xử lý lỗi nếu chuỗi không chứa một số hợp lệ
+                e.printStackTrace();
+                return 0;
+            }
+        } else {
+            return 0;
+        }
     }
 }

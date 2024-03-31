@@ -19,6 +19,16 @@ public class Row {
         return values;
     }
 
+    public void setValues(Object[] values) {
+        this.values = values;
+    }
+
+    public void addValue(Object value) {
+        Object[] newValues = Arrays.copyOf(values, values.length + 1);
+        newValues[newValues.length - 1] = value;
+        values = newValues;
+    }
+    
     public boolean equals(int index, Object otherValue) {
         Object thisValue = this.values[index];
         return SharedFunction.compareValues(thisValue, otherValue, "=");
@@ -48,9 +58,7 @@ public class Row {
         return null;
     }
 
-    public void setValues(Object[] values) {
-        this.values = values;
-    }
+   
 
     @Override
     public String toString() {
