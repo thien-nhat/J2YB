@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.database.thiendb.DataStructure.Table;
+import com.database.thiendb.Exception.InvalidRequestException;
 import com.database.thiendb.Service.DatabaseService;
 import com.database.thiendb.Service.QueryService;
 import com.database.thiendb.Service.TableService;
+import com.database.thiendb.Utils.SharedFunction;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -51,13 +54,24 @@ public class QueryController {
             // Call the function to create the database
             System.out.println(NewDatabaseName);
             this.databaseService.addDatabase(NewDatabaseName);
+        } else {
+            throw new InvalidRequestException("Invalid SQL statement: " + query);
         }
         return ResponseEntity.ok(query);
     }
 
+    @SuppressWarnings("null")
     @PostMapping("/parse-sql/{databaseName}")
     public ResponseEntity<Object> parseSQL(@RequestBody String query,
             @PathVariable("databaseName") String databaseName) {
+
+        if (databaseName == null) {
+            throw new InvalidRequestException("databaseName cannot be null");
+        }
+        Object databaseNameValue = SharedFunction.parseValue(databaseName);
+        if (!(databaseNameValue instanceof String)) {
+            throw new MethodArgumentTypeMismatchException(databaseNameValue, String.class, databaseName, null, null);
+        }
         try {
             // Parse câu truy vấn SQL
             Statement statement = CCJSqlParserUtil.parse(query);
@@ -112,12 +126,11 @@ public class QueryController {
                 return ResponseEntity.ok(query);
             }
 
-        } catch (
-
-        JSQLParserException e) {
-            e.printStackTrace();
+            // If none of the previous conditions match, throw an exception
+            throw new InvalidRequestException("Unhandler SQL statement: " + query);
+        } catch (JSQLParserException e) {
+            // If none of the previous conditions match, throw an exception
+            throw new InvalidRequestException("Invalid SQL statement: " + query);
         }
-        return ResponseEntity.ok(query);
-
     }
 }

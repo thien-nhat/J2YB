@@ -29,6 +29,9 @@ public class TableService {
     public Table getTable(String databaseName, String tableName) {
         // TODO
         Database database = databaseRepository.findDatabaseByName(databaseName);
+        if (database == null) {
+            throw new ObjectNotFoundException("Database not found: " + databaseName);
+        }
         return database.getTable(tableName);
     }
 

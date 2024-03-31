@@ -30,7 +30,6 @@ public class TableController {
     @GetMapping("/database/{databaseName}/table/{tableName}")
     public ResponseEntity<Object> getTable(@PathVariable("databaseName") String databaseName,
             @PathVariable("tableName") String tableName) {
-
         // Retrieve the row data from the database
         Table tableData = this.tableService.getTable(databaseName, tableName);
         // Check if the row data exists
@@ -63,7 +62,6 @@ public class TableController {
     @PutMapping("/database/{databaseName}/table/{tableName}")
     public void deleteRow(@PathVariable("databaseName") String databaseName, @PathVariable("tableName") String tableName,
             @RequestBody Map<String, String> requestBody) {
-        // TODO
         String newTableName = requestBody.get("newTableName");
         this.tableService.updateTableName(databaseName, tableName, newTableName);
     }
@@ -71,7 +69,6 @@ public class TableController {
     @DeleteMapping("/database/{databaseName}/table/{tableName}")
     public void deleteRow(@PathVariable("databaseName") String databaseName,
             @PathVariable("tableName") String tableName) {
-        // TODO
         this.tableService.deleteTable(databaseName, tableName);
     }
 }
