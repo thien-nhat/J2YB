@@ -18,9 +18,21 @@ Dưới đây là một số câu lệnh SQL mẫu mà bạn có thể sử dụ
 
 #### Tạo Cơ Sở Dữ Liệu
 Để tạo một cơ sở dữ liệu mới, sử dụng câu lệnh sau:
-*** CREATE DATABASE TenCSDL; ***
+***CREATE DATABASE TenCSDL;***
 
 ### API `/api/parse-sql/{TenCSDL}`
+#### Thay đổi cấu trúc bảng
+Để tạo một cột trong bảng, sử dụng câu lệnh sau:
+> ***ALTER TABLE students ADD grade VARCHAR(2);***
+
+Để xóa một cột trong bảng, sử dụng câu lệnh sau:
+> ***ALTER TABLE Orders DROP COLUMN OrderNumber;***
+
+Để thêm khóa ngoại trong bảng, sử dụng câu lệnh sau:
+> ***ALTER TABLE usersTable
+ADD CONSTRAINT fk_role_id
+FOREIGN KEY (role_id)
+REFERENCES rolesTable(id);***
 
 #### Tạo Chỉ Mục
 Để tạo chỉ mục cho một cột trong bảng, sử dụng câu lệnh sau:
@@ -29,7 +41,17 @@ Dưới đây là một số câu lệnh SQL mẫu mà bạn có thể sử dụ
 #### Tạo Bảng
 Để tạo một bảng mới, sử dụng câu lệnh sau:
 
-> ***CREATE TABLE Persons ( PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255), City varchar(255) );***
+> ***CREATE TABLE Orders (
+OrderID int,
+OrderNumber int,
+PersonID int,
+PRIMARY KEY (OrderID),
+FOREIGN KEY (PersonID) REFERENCES students(id)
+);***
+
+#### Truy vấn dữ liệu
+Để truy vấn dữ liệu từ bảng, sử dụng câu lệnh sau:
+> ***SELECT id, name, Url FROM students INNER JOIN avatars ON id = PersonID;***
 
 #### Chèn Dữ Liệu
 Để chèn dữ liệu vào bảng, sử dụng câu lệnh sau:
