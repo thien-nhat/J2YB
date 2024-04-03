@@ -14,7 +14,7 @@ public class Database {
 
     public Database() {
     }
-
+    
     public Database(String databaseName) {
         this.databaseName = databaseName;
         this.tables = new HashMap<>();
@@ -32,11 +32,14 @@ public class Database {
         return tables.get(tableName);
     }
 
+    public void addTable(String tableName, Table table) {
+        tables.put(tableName, table);
+    }
+
     public void createTable(String tableName) {
         Table table = new Table();
         tables.put(tableName, table);
     }
-
     public void updateTableName(String tableName, String newTableName) {
         if (tables.containsKey(tableName)) {
             Table table = tables.remove(tableName);

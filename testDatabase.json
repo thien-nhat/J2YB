@@ -1,0 +1,34 @@
+{
+  "databaseName": "testDatabase",
+  "tables": {
+    "testTable": {
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "INT",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "name",
+          "dataType": "VARCHAR (50)",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "age",
+          "dataType": "INT",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        }
+      ],
+      "rows": []
+    }
+  }
+}

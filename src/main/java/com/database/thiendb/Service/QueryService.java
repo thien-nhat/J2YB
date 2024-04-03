@@ -31,8 +31,6 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ItemsList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class QueryService {
@@ -43,7 +41,8 @@ public class QueryService {
     private static final Pattern DROP_COLUMN_PATTERN = Pattern
             .compile("ALTER TABLE\\s+(?:\\w+)\\s+DROP COLUMN\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern ADD_COLUMN_NAME = Pattern.compile("ALTER TABLE \\w+\\s+ADD COLUMN (\\w+)");
-    private static final Pattern ADD_COLUMN_TYPE = Pattern.compile("ALTER TABLE \\w+\\s+ADD COLUMN \\w+ (\\w+\\s*\\(\\d+\\))");
+    private static final Pattern ADD_COLUMN_TYPE = Pattern
+            .compile("ALTER TABLE \\w+\\s+ADD COLUMN \\w+ (\\w+\\s*\\(\\d+\\))");
 
     private final DatabaseRepository databaseRepository;
     private final TableService tableService;
@@ -235,19 +234,19 @@ public class QueryService {
             // Handle drop column
             String columnName = extractDropColumnName(sqlExpression);
             tableData = this.tableService.deleteColumn(databaseName, tableName, columnName);
-        } else if (sqlExpression.toUpperCase().contains("ADD")) {
-            // Handle add column
-            String columnName = extractAddColumnName(sqlExpression);
-            String columnType = extractAddColumnType(sqlExpression);
-            tableData.addColumn(columnName, columnType);
-            this.databaseRepository.save(database);
-        } else {
+        } else if (sqlExpression.toUpperCase().contains("ADD CONSTRAINT")) {
             // Handle add foreign key
             String constraintName = extractConstraintName(sqlExpression);
             String columnName = extractColumnName(sqlExpression);
             String referencedTable = extractReferencedTable(sqlExpression);
             String referencedColumn = extractReferencedColumn(sqlExpression);
             tableData.addForeignKey(columnName, referencedTable, referencedColumn);
+            this.databaseRepository.save(database);
+        } else {
+            // Handle add column
+            String columnName = extractAddColumnName(sqlExpression);
+            String columnType = extractAddColumnType(sqlExpression);
+            tableData.addColumn(columnName, columnType);
             this.databaseRepository.save(database);
         }
         return tableData;
@@ -302,7 +301,7 @@ public class QueryService {
             }
         }
         this.databaseRepository.save(database);
-
+        System.out.println("Table created successfully");
         return tableData;
     }
 
