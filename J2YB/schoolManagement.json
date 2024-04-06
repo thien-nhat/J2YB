@@ -1,0 +1,210 @@
+{
+  "databaseName": "schoolManagement",
+  "tables": {
+    "Orders": {
+      "columns": [
+        {
+          "name": "OrderID",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "OrderNumber",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "PersonID",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": true,
+          "referencedTableName": "students",
+          "referencedColumnName": "id"
+        }
+      ],
+      "rows": [
+        {
+          "values": [
+            1.0,
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            1.0,
+            6.0
+          ]
+        },
+        {
+          "values": [
+            3.0,
+            1.0,
+            6.0
+          ]
+        },
+        {
+          "values": [
+            4.0,
+            1.0,
+            6.0
+          ]
+        },
+        {
+          "values": [
+            5.0,
+            1.0,
+            6.0
+          ]
+        }
+      ]
+    },
+    "students": {
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "",
+          "isForeignKey": false
+        },
+        {
+          "name": "name",
+          "dataType": "string",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "Anonymous",
+          "isForeignKey": false
+        },
+        {
+          "name": "age",
+          "dataType": "int",
+          "isPrimaryKey": false,
+          "isIndex": true,
+          "defaultValue": "",
+          "isForeignKey": false
+        },
+        {
+          "name": "grade",
+          "dataType": "VARCHAR (2)",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "isForeignKey": false
+        }
+      ],
+      "rows": [
+        {
+          "values": [
+            1.0,
+            "Nhat",
+            21.0,
+            ""
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            "Ngo",
+            21.0,
+            ""
+          ]
+        },
+        {
+          "values": [
+            3.0,
+            "Nhat",
+            22.0,
+            ""
+          ]
+        },
+        {
+          "values": [
+            6.0,
+            "Thien",
+            23.0,
+            ""
+          ]
+        },
+        {
+          "values": [
+            4.0,
+            "Juan",
+            24.0,
+            ""
+          ]
+        },
+        {
+          "values": [
+            5.0,
+            "Stavanger",
+            60.0,
+            ""
+          ]
+        }
+      ]
+    },
+    "avatars": {
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        },
+        {
+          "name": "PersonID",
+          "dataType": "int",
+          "isPrimaryKey": true,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": true,
+          "referencedTableName": "students",
+          "referencedColumnName": "id"
+        },
+        {
+          "name": "Url",
+          "dataType": "varchar (255)",
+          "isPrimaryKey": false,
+          "isIndex": false,
+          "defaultValue": "NULL",
+          "isForeignKey": false
+        }
+      ],
+      "rows": [
+        {
+          "values": [
+            1.0,
+            1.0,
+            "https://th.bing.com/th/id/OIP._yyYIyMLvk6F69t0umqPEgHaJP?rs\u003d1\u0026pid\u003dImgDetMain"
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            1.0,
+            "https://i.pinimg.com/originals/ce/f9/19/cef9192adbf337fe6f5f8eab118185fe.jpg"
+          ]
+        },
+        {
+          "values": [
+            2.0,
+            2.0,
+            "https://th.bing.com/th/id/OIP.9i8Vqa8U4_wufuOtpFPgtgAAAA?w\u003d417\u0026h\u003d626\u0026rs\u003d1\u0026pid\u003dImgDetMain"
+          ]
+        }
+      ]
+    }
+  }
+}
